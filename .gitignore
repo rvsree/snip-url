@@ -15,7 +15,8 @@ dist/
 
 # Local data and logs
 data/*.db
-logs/*.jsonl
+logs/*.log
+logs/verify_state.json
 
 # Editors
 .idea/
