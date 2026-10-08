@@ -35,7 +35,7 @@ def test_AC2_non_http_scheme_rejected_and_not_stored(
         response = client.post("/api/links", json={"url": bad})
         assert response.status_code == 422
         assert_error_shape(response.json(), "invalid_url")
-    assert count_rows(settings.db_path, "links") == 0
+    assert count_rows(settings.db_path, "short_links") == 0
 
 
 # AC3: URLs over 2048 characters are rejected and nothing is stored.
@@ -48,7 +48,7 @@ def test_AC3_url_over_2048_chars_rejected_and_not_stored(
     response = client.post("/api/links", json={"url": url})
     assert response.status_code == 422
     assert_error_shape(response.json(), "invalid_url")
-    assert count_rows(settings.db_path, "links") == 0
+    assert count_rows(settings.db_path, "short_links") == 0
 
 
 # AC4: a missing url value is rejected.
@@ -56,7 +56,7 @@ def test_AC4_missing_url_rejected(client: TestClient, settings: Settings) -> Non
     response = client.post("/api/links", json={})
     assert response.status_code == 422
     assert_error_shape(response.json(), "invalid_url")
-    assert count_rows(settings.db_path, "links") == 0
+    assert count_rows(settings.db_path, "short_links") == 0
 
 
 # AC4: an empty url value is rejected.
@@ -64,7 +64,7 @@ def test_AC4_empty_url_rejected(client: TestClient, settings: Settings) -> None:
     response = client.post("/api/links", json={"url": ""})
     assert response.status_code == 422
     assert_error_shape(response.json(), "invalid_url")
-    assert count_rows(settings.db_path, "links") == 0
+    assert count_rows(settings.db_path, "short_links") == 0
 
 
 # AC4: a wrong-typed url value gives the standard invalid_request error.

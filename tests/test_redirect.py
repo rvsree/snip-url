@@ -71,7 +71,7 @@ def test_AC7_each_redirect_records_click_with_time(
     conn = sqlite3.connect(settings.db_path)
     try:
         rows = conn.execute(
-            "SELECT code, clicked_at FROM clicks WHERE code = ?", (code,)
+            "SELECT code, clicked_at FROM click_events WHERE code = ?", (code,)
         ).fetchall()
     finally:
         conn.close()
@@ -89,4 +89,4 @@ def test_AC8_unknown_code_records_no_click(
     make_link(client, "https://example.com/a")
     response = client.get("/zzzzzzz")
     assert response.status_code == 404
-    assert count_rows(settings.db_path, "clicks") == 0
+    assert count_rows(settings.db_path, "click_events") == 0

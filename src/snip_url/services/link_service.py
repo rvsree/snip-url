@@ -4,9 +4,12 @@ import string
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
+from snip_url.common.config import DEFAULT_IP_HASH_SALT
 from snip_url.common.errors import AppError
 from snip_url.models.link import CreateLinkResponse, LinkStatsResponse
-from snip_url.repo import link_repo
+from snip_url.repo import db, link_repo
+from snip_url.services import tracking_service
+from snip_url.services.privacy import hash_ip
 
 MAX_URL_LENGTH = 2048
 CODE_LENGTH = 7
@@ -75,12 +78,20 @@ def validate_alias(alias: str) -> str:
 
 # Store the link under the alias; AppError(409, alias_taken) if the code exists.
 def create_alias_link(
-    conn: sqlite3.Connection, base_url: str, valid_url: str, alias: str
+    conn: sqlite3.Connection,
+    base_url: str,
+    valid_url: str,
+    alias: str,
+    client_id: int | None = None,
 ) -> CreateLinkResponse:
     created_at = utc_now_iso()
-    inserted = link_repo.try_insert_link(conn, alias, valid_url, created_at)
+    inserted = link_repo.try_insert_link(
+        conn, alias, valid_url, created_at, True, client_id
+    )
     if not inserted:
         raise AppError(409, "alias_taken", "Alias is already taken")
+    if client_id is not None:
+        tracking_service.record_link_created(conn, client_id, created_at)
     return CreateLinkResponse(
         code=alias,
         short_url=base_url + "/" + alias,
@@ -95,14 +106,28 @@ def create_link(
     base_url: str,
     url: str | None,
     alias: str | None = None,
+    client_ip: str | None = None,
+    salt: str = DEFAULT_IP_HASH_SALT,
 ) -> CreateLinkResponse:
     valid_url = validate_url(url)
+    valid_alias = None
     if alias is not None:
         valid_alias = validate_alias(alias)
-        return create_alias_link(conn, base_url, valid_url, valid_alias)
+    client_id = tracking_service.client_id_for(conn, client_ip, salt, utc_now_iso())
+    if valid_alias is not None:
+        return create_alias_link(conn, base_url, valid_url, valid_alias, client_id)
+    return create_random_link(conn, base_url, valid_url, client_id)
+
+
+# Store the url under a unique random code; count it for the client.
+def create_random_link(
+    conn: sqlite3.Connection, base_url: str, valid_url: str, client_id: int | None
+) -> CreateLinkResponse:
     code = make_unique_code(conn)
     created_at = utc_now_iso()
-    link_repo.insert_link(conn, code, valid_url, created_at)
+    link_repo.insert_link(conn, code, valid_url, created_at, False, client_id)
+    if client_id is not None:
+        tracking_service.record_link_created(conn, client_id, created_at)
     return CreateLinkResponse(
         code=code,
         short_url=base_url + "/" + code,
@@ -112,11 +137,24 @@ def create_link(
 
 
 # Look up the code, record a click, and return the original url.
-def resolve_and_record_click(conn: sqlite3.Connection, code: str) -> str:
+def resolve_and_record_click(
+    conn: sqlite3.Connection,
+    code: str,
+    client_ip: str | None = None,
+    salt: str = DEFAULT_IP_HASH_SALT,
+    user_agent: str | None = None,
+    referrer: str | None = None,
+) -> str:
     link = link_repo.get_link(conn, code)
     if link is None:
         raise AppError(404, "link_not_found", "Short code not found")
-    link_repo.insert_click(conn, code, utc_now_iso())
+    now = utc_now_iso()
+    if client_ip is None:
+        link_repo.insert_click(conn, code, now)
+        db.commit(conn)
+    else:
+        ip_hash = hash_ip(client_ip, salt)
+        tracking_service.record_click(conn, code, now, ip_hash, user_agent, referrer)
     return link["original_url"]
 
 

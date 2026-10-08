@@ -59,8 +59,8 @@ def test_AC19_startup_creates_missing_folder_and_tables(tmp_path: Path) -> None:
     with TestClient(app):
         assert db_file.exists()
     tables = list_tables(db_file)
-    assert "links" in tables
-    assert "clicks" in tables
+    assert "short_links" in tables
+    assert "click_events" in tables
 
 
 # AC20: with DATABASE_PATH unset the database is data/snip_url.db.

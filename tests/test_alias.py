@@ -47,7 +47,7 @@ def test_AC4_duplicate_alias_returns_409_alias_taken_and_keeps_original(
     body = response.json()
     assert_error_shape(body, "alias_taken")
     assert "taken" in body["error"]["message"]
-    assert count_rows(settings.db_path, "links") == 1
+    assert count_rows(settings.db_path, "short_links") == 1
     redirect = client.get("/taken-one")
     assert redirect.headers["location"] == "https://example.com/first"
 
@@ -72,7 +72,7 @@ def test_AC6_alias_too_short_or_too_long_returns_422_invalid_alias(
         response = create_with_alias(client, alias)
         assert response.status_code == 422
         assert_error_shape(response.json(), "invalid_alias")
-    assert count_rows(settings.db_path, "links") == 0
+    assert count_rows(settings.db_path, "short_links") == 0
 
 
 # AC7: aliases with a space, underscore or slash are invalid_alias.
@@ -83,7 +83,7 @@ def test_AC7_alias_with_bad_characters_returns_422_invalid_alias(
         response = create_with_alias(client, alias)
         assert response.status_code == 422
         assert_error_shape(response.json(), "invalid_alias")
-    assert count_rows(settings.db_path, "links") == 0
+    assert count_rows(settings.db_path, "short_links") == 0
 
 
 # AC8: reserved words in any case give reserved_alias, not invalid_alias.
@@ -96,7 +96,7 @@ def test_AC8_reserved_alias_any_case_returns_422_reserved_alias(
         body = response.json()
         assert_error_shape(body, "reserved_alias")
         assert "reserved" in body["error"]["message"].lower()
-    assert count_rows(settings.db_path, "links") == 0
+    assert count_rows(settings.db_path, "short_links") == 0
 
 
 # AC9: aliases are case-sensitive, so MyLink and mylink can coexist.
