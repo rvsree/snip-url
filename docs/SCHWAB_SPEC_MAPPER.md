@@ -83,7 +83,7 @@ Requirement 4 is one long sentence. Each element is listed separately.
 | Working prototype (runnable end-to-end) | App runs; `/docs` page; seed script gives sample data | `uv run uvicorn snip_url.main:app --reload`; `uv run python db_scripts/seed_data.py` | Met |
 | Architecture overview (components, orchestration model, control flow, key decisions) | Workflow diagram (built), application diagram (built), target design (not built); decisions list | [architecture.md](architecture.md); [decisions.md](decisions.md) | Met |
 | Three scenarios: greenfield, brownfield, ambiguous (each shows decomposition, orchestration, validation) | S1, S2, S3, plus S4. Each folder has request, spec, plan, tasks, summary. S3 stops at the spec, so it shows decomposition of the problem and approval, but no build or validation | [scenarios.md](scenarios.md); `specs/001-*` to `specs/004-*` | Met (S3 has no build by design) |
-| Setup instructions | README has Windows PowerShell setup, endpoints, seed | `README.md` sections "For reviewers (5 minutes)", "Quick start (Windows PowerShell)", "Endpoints", "Metrics" | Partly met: README covers setup, but the fresh-clone check (checklist section F) is not done yet |
+| Setup instructions | README has Windows PowerShell setup, endpoints, seed | `README.md` sections "For reviewers (5 minutes)", "Quick start (Windows PowerShell)", "Endpoints", "Metrics" | Met |
 | Testing approach, limitations, and trade-offs | 81 pytest tests, coverage gate 80%, CI on every push, manual golden tests; limitations with IDs; trade-offs with alternatives | `uv run pytest --cov=snip_url`; `.github/workflows/ci.yml`; [review-checklist.md](review-checklist.md) section C; [design.md](design.md) section 7; [decisions.md](decisions.md) | Met (README section "Limitations") |
 
 ## 6. Evaluation Criteria
@@ -124,4 +124,4 @@ Requirement 4 is one long sentence. Each element is listed separately.
 7. No load test, no authentication; the S3 target is undecided.
 8. Rollback was proven by a drill, not by a real failed scenario.
 9. `/docs` under-describes the API (V10, V11).
-10. Fresh-clone check (checklist section F) pending.
+10. Fresh-clone check (checklist section F): done 2026-10-08 (clone, `uv sync`, 81 tests passed, coverage above 80%, Python 3.14).
