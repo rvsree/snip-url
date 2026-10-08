@@ -1,6 +1,6 @@
 import sqlite3
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 
 from snip_url.models.link import (
@@ -26,13 +26,26 @@ def health() -> HealthResponse:
     return HealthResponse(status="ok")
 
 
+# Dependency: count this create request against the direct client IP (ignores X-Forwarded-For).
+def limit_create(request: Request) -> None:
+    key = "unknown"
+    if request.client is not None:
+        key = request.client.host
+    request.app.state.rate_limiter.enforce(key)
+
+
 # Create a short link.
-@router.post("/api/links", status_code=201, response_model=CreateLinkResponse)
+@router.post(
+    "/api/links",
+    status_code=201,
+    response_model=CreateLinkResponse,
+    dependencies=[Depends(limit_create)],
+)
 def create_link(body: CreateLinkRequest, request: Request) -> CreateLinkResponse:
     conn = open_conn(request)
     try:
         base_url = request.app.state.settings.base_url
-        return link_service.create_link(conn, base_url, body.url)
+        return link_service.create_link(conn, base_url, body.url, body.alias)
     finally:
         conn.close()
 
@@ -53,6 +66,6 @@ def redirect(code: str, request: Request) -> RedirectResponse:
     conn = open_conn(request)
     try:
         url = link_service.resolve_and_record_click(conn, code)
-        return RedirectResponse(url, status_code=301)
+        return RedirectResponse(url, status_code=302)
     finally:
         conn.close()

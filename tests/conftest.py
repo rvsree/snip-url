@@ -1,4 +1,5 @@
 import sqlite3
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -14,11 +15,12 @@ def settings(tmp_path: Path) -> Settings:
     return Settings(db_path=str(tmp_path / "t.db"), base_url="http://testserver")
 
 
-# A test client that does not follow redirects.
+# A fresh app (and fresh rate limiter) per test; lifespan runs via "with".
 @pytest.fixture
-def client(settings: Settings) -> TestClient:
+def client(settings: Settings) -> Iterator[TestClient]:
     app = create_app(settings)
-    return TestClient(app, follow_redirects=False)
+    with TestClient(app, follow_redirects=False) as test_client:
+        yield test_client
 
 
 # Count rows in a table of the temporary database.

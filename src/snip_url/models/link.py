@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class CreateLinkRequest(BaseModel):
     url: str | None = None
+    alias: str | None = None
 
 
 class CreateLinkResponse(BaseModel):

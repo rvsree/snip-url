@@ -1,3 +1,4 @@
+import os
 import sqlite3
 
 SCHEMA = """
@@ -25,6 +26,9 @@ def get_connection(db_path: str) -> sqlite3.Connection:
 
 # Create tables if they do not exist (idempotent).
 def init_db(db_path: str) -> None:
+    folder = os.path.dirname(db_path)
+    if folder != "":
+        os.makedirs(folder, exist_ok=True)
     conn = get_connection(db_path)
     try:
         conn.executescript(SCHEMA)

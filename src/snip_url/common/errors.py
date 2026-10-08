@@ -9,13 +9,21 @@ class AppError(Exception):
     status_code: int
     code: str
     message: str
+    headers: dict[str, str] | None
 
-    # Store the status code, error code and message.
-    def __init__(self, status_code: int, code: str, message: str) -> None:
+    # Store the status code, error code, message and optional headers.
+    def __init__(
+        self,
+        status_code: int,
+        code: str,
+        message: str,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         super().__init__(message)
         self.status_code = status_code
         self.code = code
         self.message = message
+        self.headers = headers
 
 
 # Build the standard error JSON body.
@@ -28,6 +36,7 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
         content=error_body(exc.code, exc.message),
+        headers=exc.headers,
     )
 
 

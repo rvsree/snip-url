@@ -18,8 +18,39 @@ def test_AC5_redirect_302_with_location(client: TestClient) -> None:
     url = "https://example.com/a?b=1"
     code = make_link(client, url)
     response = client.get("/" + code)
-    assert response.status_code in (301, 302)
+    assert response.status_code == 302
     assert response.headers["location"] == url
+
+
+# AC16: an existing short link redirects with 302 and the original Location.
+def test_AC16_redirect_is_302_with_location(client: TestClient) -> None:
+    url = "https://example.com/sixteen"
+    code = make_link(client, url)
+    response = client.get("/" + code)
+    assert response.status_code == 302
+    assert response.headers["location"] == url
+
+
+# AC17: three visits are all 302 and stats report click_count 3.
+def test_AC17_three_visits_all_302_and_click_count_3(client: TestClient) -> None:
+    code = make_link(client, "https://example.com/seventeen")
+    for _ in range(3):
+        response = client.get("/" + code)
+        assert response.status_code == 302
+    stats = client.get("/api/links/" + code + "/stats")
+    assert stats.status_code == 200
+    assert stats.json()["click_count"] == 3
+
+
+# BUG-01 regression: redirect must be exactly 302 (not cached 301) and counted.
+def test_BUG01_redirect_is_302_and_counts_clicks(client: TestClient) -> None:
+    code = make_link(client, "https://example.com/bug01")
+    for _ in range(2):
+        response = client.get("/" + code)
+        assert response.status_code == 302
+        assert response.status_code != 301
+    stats = client.get("/api/links/" + code + "/stats")
+    assert stats.json()["click_count"] == 2
 
 
 # AC6: an unknown code gives 404 with a JSON error.
@@ -36,7 +67,7 @@ def test_AC7_each_redirect_records_click_with_time(
     code = make_link(client, "https://example.com/a")
     for _ in range(3):
         response = client.get("/" + code)
-        assert response.status_code in (301, 302)
+        assert response.status_code == 302
     conn = sqlite3.connect(settings.db_path)
     try:
         rows = conn.execute(

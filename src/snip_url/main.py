@@ -1,3 +1,7 @@
+import time
+from contextlib import asynccontextmanager
+from typing import AsyncIterator, Callable
+
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 
@@ -9,15 +13,34 @@ from snip_url.common.errors import (
     validation_error_handler,
 )
 from snip_url.repo.db import init_db
+from snip_url.services.rate_limiter import (
+    RATE_LIMIT_MAX,
+    RATE_LIMIT_WINDOW_SECONDS,
+    RateLimiter,
+)
 
 
-# Build the FastAPI app with settings, database, handlers and routes.
-def create_app(settings: Settings | None = None) -> FastAPI:
+# Lifespan: create the database folder and tables at startup only.
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    init_db(app.state.settings.db_path)
+    yield
+
+
+# Build the app; lifespan runs init_db(settings.db_path) at startup only.
+def create_app(
+    settings: Settings | None = None,
+    clock: Callable[[], float] | None = None,
+) -> FastAPI:
     if settings is None:
         settings = load_settings()
-    new_app = FastAPI(title="snip-url")
+    if clock is None:
+        clock = time.monotonic
+    new_app = FastAPI(title="snip-url", lifespan=lifespan)
     new_app.state.settings = settings
-    init_db(settings.db_path)
+    new_app.state.rate_limiter = RateLimiter(
+        RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_SECONDS, clock
+    )
     new_app.add_exception_handler(AppError, app_error_handler)
     new_app.add_exception_handler(RequestValidationError, validation_error_handler)
     new_app.include_router(router)

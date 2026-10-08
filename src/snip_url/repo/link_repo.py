@@ -20,6 +20,22 @@ def insert_link(
     conn.commit()
 
 
+# Insert a link row; return False if the code already exists.
+def try_insert_link(
+    conn: sqlite3.Connection, code: str, original_url: str, created_at: str
+) -> bool:
+    try:
+        conn.execute(
+            "INSERT INTO links (code, original_url, created_at) VALUES (?, ?, ?)",
+            (code, original_url, created_at),
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        conn.rollback()
+        return False
+    return True
+
+
 # Return the link row as a dict or None.
 def get_link(conn: sqlite3.Connection, code: str) -> dict | None:
     row = conn.execute(
