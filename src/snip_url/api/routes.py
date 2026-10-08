@@ -53,6 +53,6 @@ def redirect(code: str, request: Request) -> RedirectResponse:
     conn = open_conn(request)
     try:
         url = link_service.resolve_and_record_click(conn, code)
-        return RedirectResponse(url, status_code=302)
+        return RedirectResponse(url, status_code=301)
     finally:
         conn.close()

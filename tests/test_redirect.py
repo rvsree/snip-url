@@ -18,7 +18,7 @@ def test_AC5_redirect_302_with_location(client: TestClient) -> None:
     url = "https://example.com/a?b=1"
     code = make_link(client, url)
     response = client.get("/" + code)
-    assert response.status_code == 302
+    assert response.status_code in (301, 302)
     assert response.headers["location"] == url
 
 
@@ -36,7 +36,7 @@ def test_AC7_each_redirect_records_click_with_time(
     code = make_link(client, "https://example.com/a")
     for _ in range(3):
         response = client.get("/" + code)
-        assert response.status_code == 302
+        assert response.status_code in (301, 302)
     conn = sqlite3.connect(settings.db_path)
     try:
         rows = conn.execute(

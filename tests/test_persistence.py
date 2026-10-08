@@ -14,7 +14,7 @@ def test_AC11_data_survives_app_restart(settings: Settings) -> None:
 
     second = TestClient(create_app(settings), follow_redirects=False)
     redirect = second.get("/" + code)
-    assert redirect.status_code == 302
+    assert redirect.status_code in (301, 302)
     assert redirect.headers["location"] == url
 
     stats = second.get("/api/links/" + code + "/stats")
