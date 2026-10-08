@@ -50,8 +50,8 @@ Update `README.md`: the endpoints and how to try them. Keep it short.
 ## APPROVAL 3
 Show the test result, the coverage, and the list of changed files (`git status --short`).
 Ask: "Approve merge? yes / no + comment".
-- "yes": run `git add` once for each file BY NAME, then `git commit -m "<feature>: <summary>"`. Never push. Never use `git add -A` or `git add .`.
+- "yes": first write `<feature>/summary.md` (SUMMARY step), then run `git add` once for each file BY NAME (including `<feature>/summary.md`), then `git commit -m "<feature>: <summary>"`. After the commit, only report the commit ID. Never push. Never use `git add -A` or `git add .`.
 - "no": go back to step 2 (PLAN) with the comment.
 
 ## 6. SUMMARY
-Write `<feature>/summary.md` with: what was built, tests and coverage, approvals with the human's exact replies, retries, rollbacks, open items.
+Do this BEFORE the merge commit at APPROVAL 3 (and at "stop here"). Write `<feature>/summary.md` with: what was built, tests and coverage, approvals with the human's exact replies, retries, rollbacks, open items.

@@ -1,6 +1,7 @@
 """PreToolUse hook: block unsafe writes and unsafe shell commands (exit code 2)."""
 import json
 import os
+import re
 import sys
 
 SECRET_MARKERS = ["sk-ant-", "AKIA", "BEGIN PRIVATE KEY"]
@@ -74,12 +75,14 @@ def check_secrets(text: str) -> None:
             block("new text contains a secret-like string (" + marker + ")")
 
 
-# Check a shell command: no git push, no .env (but .env.example is fine).
+# Check a shell command: no git push, no .env file (but .env.example is fine).
+# A ".env" counts only when it starts a file name: not after a letter, digit or
+# underscore (so "os.environ" is fine) and not followed by one (so ".environment" is fine).
 def check_command(command: str) -> None:
     if "git push" in command:
         block("git push is not allowed; the human pushes")
     cleaned = command.replace(".env.example", "")
-    if ".env" in cleaned:
+    if re.search(r"(?<!\w)\.env(?!\w)", cleaned, re.IGNORECASE):
         block("commands that touch .env are not allowed")
 
 
