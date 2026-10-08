@@ -57,4 +57,4 @@ Result: verify_fail ("attempt 1", 1 failed / 45 passed), then verify_pass ("pyte
 
 ## Commit
 
-[INSERT commit ID] "Step 2 fixes: summary before commit (V2), recovery test (V3), guard false positive (V4); review checklist"
+`6b85dd2` "Step 2 fixes: summary before commit (V2), recovery test (V3), guard false positive (V4); review checklist"

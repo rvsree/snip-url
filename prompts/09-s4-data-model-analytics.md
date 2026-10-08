@@ -29,12 +29,15 @@ Small config change, do not run /sdlc. In .claude/agents/coder.md, allow the cod
 
 ## Open questions and my answers
 
-[INSERT]
+From `specs/004-data-model-analytics/summary.md`: analytics paths are `/api/analytics/...`; invalid N is rejected with 422; the summary takes the same N; totals are limited to the last N days; migrated old rows keep empty visitor data and `is_custom_alias` false; the seed has exactly 300 clicks and 40 visitors.
 
 ## My replies at the approvals
 
-[INSERT]
+- Approval 1 (spec): "yes"
+- Approval 2 (plan), first round: "no: 1) Fix risk 2: record the click event, the visitor update and the daily_link_stats update in ONE database transaction, so they can never get out of step. Add a test that proves a failure in the middle saves none of them. 2) Remove T7: README is updated in the DOCS step; the coder writes only in src/ and db_scripts/. Then show the plan again."
+- Approval 2 (plan), second round: "yes"
+- Approval 3 (merge): "yes"
 
 ## Result
 
-[INSERT: tests, coverage, retries, commit ID; seed counts per table]
+81 tests passed, coverage 98.53%. One re-plan at Approval 2; the stop hook fired once while the coder was still writing (not a code fault); 0 fix rounds, 0 rollbacks. Merge commit `fe7c392`; audit log `9b318f1`. Seed counts: 30 links, 40 visitors, 300 clicks; counts for `api_clients` and `daily_link_stats` not recorded.

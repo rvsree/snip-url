@@ -1,6 +1,6 @@
 # 07 - Scenario S3: viral traffic (ambiguous requirement)
 
-**Date:** [INSERT run date]
+**Date:** 2026-10-07 (commits `18ce1cf` request, `75e39bf` spec)
 **Purpose:** Show how the workflow handles a vague requirement: the agent asks questions and records assumptions, and the run stops at the approved spec. No code is built.
 **Input:** `specs/003-viral-traffic/request.md` (one line: "Make it handle viral traffic.")
 **Where:** Claude Code in the VS Code terminal (`claude`), new session.
@@ -29,4 +29,4 @@ yes, stop here
 
 ## Result
 
-[INSERT: number of questions, assumptions recorded, open questions left]
+8 questions asked. Recorded in the spec: 6 assumptions (A1-A6; A1-A5 are recommended defaults for the business questions) and 3 decisions (D1-D3). 5 open questions left for the business owner (Q1-Q5). Nothing built. Approval 1 reply: "yes, stop here" (`specs/003-viral-traffic/summary.md`).

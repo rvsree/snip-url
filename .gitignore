@@ -21,3 +21,4 @@ logs/verify_state.json
 # Editors
 .idea/
 .vscode/
+_private/

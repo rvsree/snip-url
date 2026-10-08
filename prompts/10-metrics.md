@@ -52,4 +52,4 @@ Success rate 100% (hook tests excluded); retries 4; rollbacks 1; MTTR 7.8 second
 
 Known limit (V12): approvals chosen from Claude Code's menu are logged as "a decision was made", not the choice itself; S4's "no + comment" is therefore not counted as a re-plan by the script. The exact replies are in specs/004-.../summary.md and prompts/09.
 
-Commit: [INSERT commit ID]
+Commit: `c82ed21`

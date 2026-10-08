@@ -47,4 +47,4 @@ Yes, loosen those two assertions too, the same way (accept 301 or 302). Keep the
 
 - Script made 4 changes: `src/snip_url/api/routes.py` (302 -> 301), `tests/test_redirect.py` (AC5, AC7 assertions), `tests/test_persistence.py` (AC11 assertion).
 - `uv run pytest -q`: 17 passed (bug hidden by the loosened tests, as intended).
-- Commit [INSERT commit ID] "BUG-01 seeded on purpose for scenario S2 (redirect 301 instead of 302; 3 test assertions loosened)".
+- Commit `f2d0c8f` "BUG-01 seeded on purpose for scenario S2 (redirect 301 instead of 302; 3 test assertions loosened)".

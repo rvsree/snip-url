@@ -54,4 +54,4 @@ yes. One change: use "git init -b main" so the branch is named main. Keep your o
 
 - 18 files created; `uv sync` passed; CI green on GitHub.
 - Commit `40c59be` "Step 1: project setup (config, constitution, CLAUDE.md, CI)".
-- Done by hand afterwards (not by Claude Code): added `requirements.txt` (`uv export`), changed `.env.example` to `DATABASE_PATH=data/snip_url.db`. Commit [INSERT commit ID].
+- Done by hand afterwards (not by Claude Code): added `requirements.txt` (`uv export`), changed `.env.example` to `DATABASE_PATH=data/snip_url.db`. Commit `de1e287` "Add requirements.txt; .env.example holds app settings only" (2026-10-07). Step 1 commit: `40c59be`.

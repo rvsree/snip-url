@@ -19,4 +19,4 @@ Then end your turn. When the stop hook blocks you, do NOT fix anything and do NO
 - `git stash list`: `stash@{0}: On main: snip-url rollback 2026-10-08T01:21:59...`
 - `logs/audit.jsonl`: `verify_fail` (attempt 1), `verify_fail` (attempt 2), `rollback` (src tests).
 - Stash dropped afterwards with `git stash drop` (it held only the fake test).
-- Audit log from this test: [INSERT kept or deleted].
+- Audit log from this test: kept. It is tracked in git and the hook-test events are still in `logs/audit.jsonl` (first row of [docs/metrics.md](../docs/metrics.md)); it is the evidence for success criterion 3.

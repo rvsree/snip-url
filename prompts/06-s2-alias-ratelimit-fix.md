@@ -48,4 +48,4 @@ Approval 3 (merge): `yes`
 - 45 passed, 0 failed; coverage 98.81% (gate 80%); no fix rounds, no rollbacks.
 - spec-writer found the BUG-01 cause from the code (routes.py returned 301); 3 loosened assertions restored to exactly 302.
 - DEF-02 checked by hand after the merge: running the app creates `data/snip_url.db`, and no `snip_url.db` in the project root.
-- Merge commit [INSERT commit ID]; audit log commit `2295b57`.
+- Merge commit `8375fdb`; audit log commit `2295b57`.

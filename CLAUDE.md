@@ -33,7 +33,7 @@ Build only what the approved spec asks for. Do not skip or reorder steps.
 - `src/snip_url/` - app code (api/, services/, repo/, models/, common/)
 - `tests/` - pytest tests
 - `specs/` - constitution and one folder per feature
-- `logs/` - audit log (git-ignored)
+- `logs/` - `audit.jsonl` is tracked as evidence; only `logs/*.log` and `logs/verify_state.json` are git-ignored
 - `scripts/` - helper scripts
 
 ## Commands (Windows PowerShell)

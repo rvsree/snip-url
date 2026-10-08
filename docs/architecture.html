@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>snip-url Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #f0f1f5; --surface: #ffffff; --surface-alt: #f5f6fa; --border: #dbdee7;
+    --text: #171a24; --text-muted: #555c70; --text-faint: #888fa3;
+    --band: #232a42; --node-bg: #ffffff; --edge: #7d8499; --flow: #3457d5;
+    --shadow: 0 2px 4px rgba(15,20,30,0.06), 0 10px 22px rgba(15,20,30,0.07);
+    --ai-bg: #e8eeff; --ai-bd: #9fb3f5;
+    --human-bg: #fbf1dd; --human-bd: #e2bd6c;
+    --hook-bg: #e3f6ea; --hook-bd: #8fd1aa;
+    --art-bg: #eef0f4; --art-bd: #c3c8d4;
+    --par: #7c3aed; --par-bg: #f6f1ff;
+    --gap-bg: #fdecec; --gap-bd: #eeb4b4; --gap-tx: #a33a3a;
+    --l-client-bg: #eef0f4; --l-client-bd: #d5d9e3;
+    --l-edge-bg: #fdeee3; --l-edge-bd: #f0c9a8;
+    --l-api-bg: #e8eeff; --l-api-bd: #bccaf8;
+    --l-svc-bg: #e3f6ea; --l-svc-bd: #b7e4c8;
+    --l-msg-bg: #f1ebfe; --l-msg-bd: #d6c4fb;
+    --l-data-bg: #fbf1dd; --l-data-bd: #edd6a2;
+    --l-obs-bg: #e3f3f7; --l-obs-bd: #afd8e4;
+    --built: #146b3f; --built-bg: #e3f6ea; --built-border: #b7e4c8;
+    --target: #6b4e0c; --target-bg: #fbf1dd; --target-border: #edd6a2;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d0f16; --surface: #14161f; --surface-alt: #161923; --border: #292d3d;
+      --text: #e7e9f0; --text-muted: #a5abbf; --text-faint: #6b7288;
+      --band: #1a2038; --node-bg: #181b28; --edge: #8a91a8; --flow: #7c96ff;
+      --shadow: 0 2px 4px rgba(0,0,0,0.35), 0 12px 26px rgba(0,0,0,0.4);
+      --ai-bg: #182246; --ai-bd: #3b4f99;
+      --human-bg: #2c2311; --human-bd: #7a5c1f;
+      --hook-bg: #132a1e; --hook-bd: #2f6b48;
+      --art-bg: #1b1f2c; --art-bd: #353b50;
+      --par: #b794f6; --par-bg: #201930;
+      --gap-bg: #2d1717; --gap-bd: #6b2e2e; --gap-tx: #f0a0a0;
+      --l-client-bg: #171a25; --l-client-bd: #2a2f42;
+      --l-edge-bg: #2a1d14; --l-edge-bd: #5a3a22;
+      --l-api-bg: #161d38; --l-api-bd: #2f3f7a;
+      --l-svc-bg: #12251b; --l-svc-bd: #24533a;
+      --l-msg-bg: #1f1830; --l-msg-bd: #43316b;
+      --l-data-bg: #261f10; --l-data-bd: #574319;
+      --l-obs-bg: #10242a; --l-obs-bd: #24525e;
+      --built: #4fc989; --built-bg: #132a1e; --built-border: #204a32;
+      --target: #e0ac48; --target-bg: #2c2311; --target-border: #4a3a17;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d0f16; --surface: #14161f; --surface-alt: #161923; --border: #292d3d;
+    --text: #e7e9f0; --text-muted: #a5abbf; --text-faint: #6b7288;
+    --band: #1a2038; --node-bg: #181b28; --edge: #8a91a8; --flow: #7c96ff;
+    --shadow: 0 2px 4px rgba(0,0,0,0.35), 0 12px 26px rgba(0,0,0,0.4);
+    --ai-bg: #182246; --ai-bd: #3b4f99;
+    --human-bg: #2c2311; --human-bd: #7a5c1f;
+    --hook-bg: #132a1e; --hook-bd: #2f6b48;
+    --art-bg: #1b1f2c; --art-bd: #353b50;
+    --par: #b794f6; --par-bg: #201930;
+    --gap-bg: #2d1717; --gap-bd: #6b2e2e; --gap-tx: #f0a0a0;
+    --l-client-bg: #171a25; --l-client-bd: #2a2f42;
+    --l-edge-bg: #2a1d14; --l-edge-bd: #5a3a22;
+    --l-api-bg: #161d38; --l-api-bd: #2f3f7a;
+    --l-svc-bg: #12251b; --l-svc-bd: #24533a;
+    --l-msg-bg: #1f1830; --l-msg-bd: #43316b;
+    --l-data-bg: #261f10; --l-data-bd: #574319;
+    --l-obs-bg: #10242a; --l-obs-bd: #24525e;
+    --built: #4fc989; --built-bg: #132a1e; --built-border: #204a32;
+    --target: #e0ac48; --target-bg: #2c2311; --target-border: #4a3a17;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif; padding-inline: 16px; padding-block: 28px 56px; }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace; }
+  .wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+
+  header { display: flex; flex-direction: column; gap: 10px; }
+  .eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-faint); font-weight: 600; }
+  h1 { margin: 0; font-family: 'Archivo', sans-serif; font-weight: 900; font-size: clamp(24px, 3.8vw, 32px); letter-spacing: -0.01em; }
+  .subtitle { margin: 0; color: var(--text-muted); font-size: 13.5px; max-width: 90ch; line-height: 1.6; }
+  .source-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint); background: var(--surface); border: 1px solid var(--border); padding: 5px 10px; border-radius: 8px; width: fit-content; }
+
+  section.card { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); overflow: hidden; }
+  .card-head { background: var(--band); color: #fff; padding: 12px 18px; }
+  .card-head h2 { margin: 0; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 15px; }
+  .card-head p { margin: 4px 0 0; font-size: 11.5px; opacity: 0.78; }
+  .card-body { padding: 18px; }
+  .diagram-wrap { overflow-x: auto; }
+  figure { margin: 0; }
+  svg { display: block; width: 100%; height: auto; min-width: 760px; }
+  figcaption { margin-top: 12px; font-size: 12.5px; color: var(--text-muted); line-height: 1.65; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); background: var(--surface-alt); border: 1px solid var(--border); padding: 4px 10px 4px 8px; border-radius: 999px; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; border: 1.5px solid; }
+
+  /* svg text + shapes */
+  .t { font-family: 'Archivo', 'Segoe UI', sans-serif; font-weight: 700; font-size: 13px; fill: var(--text); }
+  .tm { font-family: 'IBM Plex Mono', Consolas, monospace; font-weight: 600; font-size: 11.5px; fill: var(--text); }
+  .s { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 10px; fill: var(--text-muted); }
+  .lane { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; fill: var(--text-muted); }
+  .el { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 10px; fill: var(--text-muted); }
+  .el.p { fill: var(--par); font-weight: 600; }
+  .edge { fill: none; stroke: var(--edge); stroke-width: 1.5; }
+  .edge.flow { stroke: var(--flow); }
+  .edge.loop { stroke-dasharray: 5 4; }
+  .edge.async { stroke: var(--par); stroke-dasharray: 6 4; }
+  .n { fill: var(--node-bg); stroke: var(--border); stroke-width: 1.5; }
+  .ai { fill: var(--ai-bg); stroke: var(--ai-bd); stroke-width: 1.5; }
+  .human { fill: var(--human-bg); stroke: var(--human-bd); stroke-width: 1.5; }
+  .hook { fill: var(--hook-bg); stroke: var(--hook-bd); stroke-width: 1.5; }
+  .art { fill: var(--art-bg); stroke: var(--art-bd); stroke-width: 1.5; }
+  .gapn { fill: var(--gap-bg); stroke: var(--gap-bd); stroke-width: 1.5; }
+  .parframe { fill: var(--par-bg); stroke: var(--par); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .b-client { fill: var(--l-client-bg); stroke: var(--l-client-bd); }
+  .b-edge { fill: var(--l-edge-bg); stroke: var(--l-edge-bd); }
+  .b-api { fill: var(--l-api-bg); stroke: var(--l-api-bd); }
+  .b-svc { fill: var(--l-svc-bg); stroke: var(--l-svc-bd); }
+  .b-msg { fill: var(--l-msg-bg); stroke: var(--l-msg-bd); }
+  .b-data { fill: var(--l-data-bg); stroke: var(--l-data-bd); }
+  .b-obs { fill: var(--l-obs-bg); stroke: var(--l-obs-bd); }
+  .bandr { stroke-width: 1.2; }
+  .banner { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: 0.08em; fill: var(--target); }
+  .outline { fill: none; stroke: var(--target); stroke-width: 1.5; stroke-dasharray: 8 6; }
+
+  /* tables */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th { text-align: left; padding: 8px 12px; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-faint); border-bottom: 1px solid var(--border); }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.k { font-weight: 700; white-space: nowrap; }
+  .pill { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; display: inline-block; }
+  .pill.built { color: var(--built); background: var(--built-bg); border: 1px solid var(--built-border); }
+  .pill.target { color: var(--target); background: var(--target-bg); border: 1px solid var(--target-border); }
+  .table-wrap { overflow-x: auto; }
+  footer { border-top: 1px solid var(--border); padding-top: 16px; font-size: 12px; color: var(--text-faint); line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Charles Schwab take-home &middot; agentic software engineering system</div>
+    <h1>snip-url Architecture</h1>
+    <p class="subtitle">Three views: <strong>(1)</strong> the agentic SDLC workflow that built the app, <strong>(2)</strong> the application as built, <strong>(3)</strong> a target production design that is <strong>not built</strong>, shown to explain how the prototype would scale. The application is fully deterministic; AI is used only in the development workflow.</p>
+    <span class="source-tag">repo: rvsree/snip-url &middot; 2026-10-08</span>
+  </header>
+
+  <!-- ===================== DIAGRAM 1 ===================== -->
+  <section class="card" id="d1">
+    <div class="card-head">
+      <h2>1 &middot; Agentic SDLC workflow (built)</h2>
+      <p>Claude Code is the orchestration runtime: a skill orders the stages, subagents do the work, hooks enforce the rules in code, and a human approves at three gates</p>
+    </div>
+    <div class="card-body diagram-wrap">
+      <div class="legend">
+        <span class="legend-item"><span class="sw" style="background:var(--ai-bg);border-color:var(--ai-bd)"></span>AI (orchestrator, subagents)</span>
+        <span class="legend-item"><span class="sw" style="background:var(--human-bg);border-color:var(--human-bd)"></span>Human gate</span>
+        <span class="legend-item"><span class="sw" style="background:var(--hook-bg);border-color:var(--hook-bd)"></span>Enforced by code (hooks, settings)</span>
+        <span class="legend-item"><span class="sw" style="background:var(--art-bg);border-color:var(--art-bd)"></span>Files and state</span>
+        <span class="legend-item"><span class="sw" style="background:var(--par-bg);border-color:var(--par)"></span>Runs in parallel</span>
+      </div>
+      <figure>
+        <svg viewBox="0 0 1180 700" role="img" aria-label="Sree starts /sdlc. The orchestrator runs SPEC, approval 1, PLAN, approval 2, BUILD with coder and tester in parallel, VERIFY by the verify_gate hook with up to two retries and rollback, DOCS, approval 3, and MERGE. Hooks enforce policy, audit every event, and feed a metrics script.">
+          <defs>
+            <marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7d8499"/></marker>
+            <marker id="a1f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3457d5"/></marker>
+          </defs>
+
+          <!-- top row -->
+          <rect class="human" x="20" y="20" width="200" height="60" rx="9"/>
+          <text class="t" x="120" y="45" text-anchor="middle">Sree (human)</text>
+          <text class="s" x="120" y="62" text-anchor="middle">approves · commits · pushes</text>
+
+          <rect class="art" x="20" y="110" width="200" height="60" rx="9"/>
+          <text class="t" x="120" y="133" text-anchor="middle">Inputs</text>
+          <text class="s" x="120" y="150" text-anchor="middle">request.md · constitution.md</text>
+          <text class="s" x="120" y="163" text-anchor="middle">CLAUDE.md</text>
+
+          <rect class="ai" x="380" y="40" width="420" height="96" rx="9"/>
+          <text class="t" x="590" y="66" text-anchor="middle">Orchestrator: Claude Code main session</text>
+          <text class="s" x="590" y="86" text-anchor="middle">/sdlc skill (.claude/skills/sdlc/SKILL.md)</text>
+          <text class="s" x="590" y="102" text-anchor="middle">runs stages in order · delegates · never writes code</text>
+          <text class="s" x="590" y="118" text-anchor="middle">subagents: spec-writer, planner, coder, tester</text>
+
+          <rect class="art" x="960" y="20" width="200" height="150" rx="9"/>
+          <text class="t" x="1060" y="44" text-anchor="middle">State &amp; lineage</text>
+          <text class="s" x="1060" y="66" text-anchor="middle">specs/&lt;feature&gt;/</text>
+          <text class="s" x="1060" y="82" text-anchor="middle">request → spec → plan</text>
+          <text class="s" x="1060" y="98" text-anchor="middle">→ tasks → summary</text>
+          <text class="s" x="1060" y="122" text-anchor="middle">prompts/ (every prompt)</text>
+          <text class="s" x="1060" y="138" text-anchor="middle">git history</text>
+          <text class="s" x="1060" y="154" text-anchor="middle">logs/audit.jsonl</text>
+
+          <line class="edge flow" x1="220" y1="50" x2="378" y2="50" marker-end="url(#a1f)"/>
+          <text class="el" x="299" y="43" text-anchor="middle">/sdlc specs/&lt;feature&gt;</text>
+          <line class="edge" x1="220" y1="125" x2="378" y2="125" marker-end="url(#a1)"/>
+          <text class="el" x="299" y="118" text-anchor="middle">reads</text>
+          <line class="edge" x1="800" y1="88" x2="958" y2="88" marker-end="url(#a1)"/>
+          <text class="el" x="879" y="81" text-anchor="middle">writes via agents</text>
+
+          <!-- control bus -->
+          <line class="edge flow" x1="590" y1="136" x2="590" y2="200"/>
+          <text class="el" x="600" y="176">drives stages in order</text>
+          <line class="edge flow" x1="80" y1="200" x2="1090" y2="200"/>
+          <line class="edge flow" x1="80" y1="200" x2="80" y2="238" marker-end="url(#a1f)"/>
+          <line class="edge flow" x1="310" y1="200" x2="310" y2="238" marker-end="url(#a1f)"/>
+          <line class="edge flow" x1="555" y1="200" x2="555" y2="230" marker-end="url(#a1f)"/>
+          <line class="edge flow" x1="720" y1="200" x2="720" y2="238" marker-end="url(#a1f)"/>
+          <line class="edge flow" x1="860" y1="200" x2="860" y2="238" marker-end="url(#a1f)"/>
+          <line class="edge flow" x1="1090" y1="200" x2="1090" y2="238" marker-end="url(#a1f)"/>
+
+          <!-- stage row -->
+          <rect class="ai" x="20" y="240" width="120" height="100" rx="9"/>
+          <text class="t" x="80" y="262" text-anchor="middle">SPEC</text>
+          <text class="s" x="80" y="281" text-anchor="middle">spec-writer</text>
+          <text class="s" x="80" y="296" text-anchor="middle">spec.md</text>
+          <text class="s" x="80" y="311" text-anchor="middle">open questions</text>
+
+          <line class="edge" x1="140" y1="290" x2="158" y2="290" marker-end="url(#a1)"/>
+          <rect class="human" x="160" y="250" width="70" height="80" rx="9"/>
+          <text class="t" x="195" y="280" text-anchor="middle">A1</text>
+          <text class="s" x="195" y="297" text-anchor="middle">approve</text>
+          <text class="s" x="195" y="311" text-anchor="middle">spec</text>
+          <line class="edge" x1="230" y1="290" x2="248" y2="290" marker-end="url(#a1)"/>
+
+          <rect class="ai" x="250" y="240" width="120" height="100" rx="9"/>
+          <text class="t" x="310" y="262" text-anchor="middle">PLAN</text>
+          <text class="s" x="310" y="281" text-anchor="middle">planner</text>
+          <text class="s" x="310" y="296" text-anchor="middle">plan.md · tasks.md</text>
+          <text class="s" x="310" y="311" text-anchor="middle">impact + contract</text>
+
+          <line class="edge" x1="370" y1="290" x2="388" y2="290" marker-end="url(#a1)"/>
+          <rect class="human" x="390" y="250" width="70" height="80" rx="9"/>
+          <text class="t" x="425" y="280" text-anchor="middle">A2</text>
+          <text class="s" x="425" y="297" text-anchor="middle">approve</text>
+          <text class="s" x="425" y="311" text-anchor="middle">plan</text>
+          <line class="edge" x1="460" y1="290" x2="478" y2="290" marker-end="url(#a1)"/>
+
+          <rect class="parframe" x="480" y="232" width="150" height="116" rx="10"/>
+          <text class="el p" x="555" y="247" text-anchor="middle">BUILD · in parallel</text>
+          <rect class="ai" x="492" y="256" width="126" height="38" rx="7"/>
+          <text class="t" x="555" y="272" text-anchor="middle">coder</text>
+          <text class="s" x="555" y="286" text-anchor="middle">src/ · db_scripts/</text>
+          <rect class="ai" x="492" y="300" width="126" height="38" rx="7"/>
+          <text class="t" x="555" y="316" text-anchor="middle">tester</text>
+          <text class="s" x="555" y="330" text-anchor="middle">tests/</text>
+          <line class="edge" x1="630" y1="290" x2="648" y2="290" marker-end="url(#a1)"/>
+
+          <rect class="hook" x="650" y="240" width="140" height="100" rx="9"/>
+          <text class="t" x="720" y="262" text-anchor="middle">VERIFY</text>
+          <text class="s" x="720" y="281" text-anchor="middle">verify_gate hook</text>
+          <text class="s" x="720" y="296" text-anchor="middle">pytest + cov ≥ 80%</text>
+          <text class="s" x="720" y="311" text-anchor="middle">retry ×2 · rollback</text>
+          <line class="edge" x1="790" y1="290" x2="808" y2="290" marker-end="url(#a1)"/>
+
+          <rect class="ai" x="810" y="240" width="100" height="100" rx="9"/>
+          <text class="t" x="860" y="262" text-anchor="middle">DOCS</text>
+          <text class="s" x="860" y="281" text-anchor="middle">README</text>
+          <text class="s" x="860" y="296" text-anchor="middle">updated</text>
+          <line class="edge" x1="910" y1="290" x2="928" y2="290" marker-end="url(#a1)"/>
+
+          <rect class="human" x="930" y="250" width="70" height="80" rx="9"/>
+          <text class="t" x="965" y="280" text-anchor="middle">A3</text>
+          <text class="s" x="965" y="297" text-anchor="middle">approve</text>
+          <text class="s" x="965" y="311" text-anchor="middle">merge</text>
+          <line class="edge" x1="1000" y1="290" x2="1018" y2="290" marker-end="url(#a1)"/>
+
+          <rect class="art" x="1020" y="240" width="140" height="100" rx="9"/>
+          <text class="t" x="1090" y="262" text-anchor="middle">MERGE</text>
+          <text class="s" x="1090" y="281" text-anchor="middle">summary.md</text>
+          <text class="s" x="1090" y="296" text-anchor="middle">git commit</text>
+          <text class="s" x="1090" y="311" text-anchor="middle">Sree pushes</text>
+
+          <!-- loops -->
+          <polyline class="edge loop" points="195,330 195,362 80,362 80,342" marker-end="url(#a1)"/>
+          <text class="el" x="137" y="378" text-anchor="middle">no → revise</text>
+          <polyline class="edge loop" points="425,330 425,362 310,362 310,342" marker-end="url(#a1)"/>
+          <text class="el" x="367" y="378" text-anchor="middle">no + comment → re-plan</text>
+          <polyline class="edge loop" points="700,340 700,362 555,362 555,350" marker-end="url(#a1)"/>
+          <text class="el" x="627" y="378" text-anchor="middle">fail → fix (max 2)</text>
+          <line class="edge" x1="760" y1="340" x2="760" y2="420" marker-end="url(#a1)"/>
+          <text class="el" x="768" y="396">3rd fail</text>
+          <rect class="gapn" x="650" y="422" width="230" height="50" rx="9"/>
+          <text class="t" x="765" y="443" text-anchor="middle" style="fill:var(--gap-tx)">Rollback · safe-stop</text>
+          <text class="s" x="765" y="460" text-anchor="middle">git stash src/ tests/ · tell Sree</text>
+
+          <!-- guardrail band -->
+          <rect class="bandr b-svc" x="10" y="488" width="1160" height="200" rx="12"/>
+          <text class="lane" x="24" y="507">GUARDRAILS &amp; OBSERVABILITY · ENFORCED IN CODE, NOT BY THE AI · HOOKS WRAP EVERY TOOL CALL IN EVERY STAGE</text>
+
+          <rect class="hook" x="20" y="520" width="270" height="80" rx="9"/>
+          <text class="t" x="155" y="543" text-anchor="middle">policy_guard.py · PreToolUse</text>
+          <text class="s" x="155" y="562" text-anchor="middle">blocks .env, secrets, protected files</text>
+          <text class="s" x="155" y="578" text-anchor="middle">blocks git push (Sree pushes)</text>
+
+          <rect class="hook" x="20" y="612" width="270" height="62" rx="9"/>
+          <text class="t" x="155" y="637" text-anchor="middle">settings.json · permissions</text>
+          <text class="s" x="155" y="656" text-anchor="middle">deny: read .env, git push, git add -A</text>
+
+          <rect class="hook" x="320" y="520" width="260" height="80" rx="9"/>
+          <text class="t" x="450" y="543" text-anchor="middle">audit_log.py · every event</text>
+          <text class="s" x="450" y="562" text-anchor="middle">tools, prompts, gate events</text>
+          <text class="s" x="450" y="578" text-anchor="middle">→ logs/audit.jsonl</text>
+
+          <rect class="art" x="320" y="612" width="260" height="62" rx="9"/>
+          <text class="t" x="450" y="637" text-anchor="middle">logs/audit.jsonl</text>
+          <text class="s" x="450" y="656" text-anchor="middle">who did what, when (no file contents)</text>
+          <line class="edge" x1="450" y1="600" x2="450" y2="610" marker-end="url(#a1)"/>
+
+          <rect class="art" x="610" y="520" width="270" height="80" rx="9"/>
+          <text class="t" x="745" y="543" text-anchor="middle">scripts/metrics.py</text>
+          <text class="s" x="745" y="562" text-anchor="middle">audit log + git history</text>
+          <text class="s" x="745" y="578" text-anchor="middle">→ docs/metrics.md</text>
+          <polyline class="edge" points="580,643 595,643 595,560 608,560" marker-end="url(#a1)"/>
+
+          <rect class="art" x="610" y="612" width="270" height="62" rx="9"/>
+          <text class="t" x="745" y="637" text-anchor="middle">Reliability metrics</text>
+          <text class="s" x="745" y="656" text-anchor="middle">success rate · retries · rollbacks · MTTR</text>
+          <line class="edge" x1="745" y1="600" x2="745" y2="610" marker-end="url(#a1)"/>
+
+          <rect class="n" x="900" y="520" width="260" height="154" rx="9"/>
+          <text class="t" x="1030" y="544" text-anchor="middle">Measured (S1–S4)</text>
+          <text class="s" x="1030" y="568" text-anchor="middle">4 scenarios · 100% success</text>
+          <text class="s" x="1030" y="586" text-anchor="middle">81 tests · 98.5% coverage</text>
+          <text class="s" x="1030" y="604" text-anchor="middle">4 retries · 1 rollback</text>
+          <text class="s" x="1030" y="622" text-anchor="middle">MTTR 7.8 s (recovery drill)</text>
+          <text class="s" x="1030" y="640" text-anchor="middle">3 human re-plans (S2, S4)</text>
+          <line class="edge" x1="880" y1="643" x2="898" y2="643" marker-end="url(#a1)"/>
+        </svg>
+        <figcaption>
+          Stage order comes from the skill (followed by the AI); the important checks are enforced in code by hooks, which the AI cannot skip. A1&ndash;A3 are human decisions: &ldquo;no + comment&rdquo; sends the work back for revision or re-planning. Coder and tester run at the same time against a shared contract in <span class="mono">plan.md</span>, then join at VERIFY. After two failed fix rounds, <span class="mono">verify_gate</span> rolls back <span class="mono">src/</span> and <span class="mono">tests/</span> and stops safely. Ambiguous requests (S3) stop after the approved spec.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== DIAGRAM 2 ===================== -->
+  <section class="card" id="d2">
+    <div class="card-head">
+      <h2>2 &middot; Application as built</h2>
+      <p>FastAPI + SQLite, strict layers: routes have no logic, services have no SQL, repositories have SQL only</p>
+    </div>
+    <div class="card-body diagram-wrap">
+      <div class="legend">
+        <span class="legend-item"><span class="sw" style="background:var(--l-client-bg);border-color:var(--l-client-bd)"></span>Clients</span>
+        <span class="legend-item"><span class="sw" style="background:var(--l-api-bg);border-color:var(--l-api-bd)"></span>API</span>
+        <span class="legend-item"><span class="sw" style="background:var(--l-svc-bg);border-color:var(--l-svc-bd)"></span>Services</span>
+        <span class="legend-item"><span class="sw" style="background:var(--l-data-bg);border-color:var(--l-data-bd)"></span>Data</span>
+        <span class="legend-item"><span class="sw" style="background:var(--art-bg);border-color:var(--art-bd)"></span>Shared / tooling</span>
+      </div>
+      <figure>
+        <svg viewBox="0 0 1180 640" role="img" aria-label="Clients call six FastAPI endpoints. Routes call services: link, rate limiter, tracking, analytics and privacy. Services call repositories, which read and write five SQLite tables. Config, errors, models, the seed script and tests sit alongside.">
+          <defs>
+            <marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7d8499"/></marker>
+          </defs>
+
+          <!-- clients -->
+          <rect class="bandr b-client" x="20" y="16" width="880" height="86" rx="12"/>
+          <text class="lane" x="34" y="33">CLIENTS</text>
+          <rect class="n" x="140" y="40" width="220" height="50" rx="9"/>
+          <text class="t" x="250" y="61" text-anchor="middle">API caller</text>
+          <text class="s" x="250" y="78" text-anchor="middle">creates links (POST)</text>
+          <rect class="n" x="390" y="40" width="220" height="50" rx="9"/>
+          <text class="t" x="500" y="61" text-anchor="middle">Visitor (browser)</text>
+          <text class="s" x="500" y="78" text-anchor="middle">opens short links</text>
+          <rect class="n" x="640" y="40" width="240" height="50" rx="9"/>
+          <text class="t" x="760" y="61" text-anchor="middle">Reviewer / analyst</text>
+          <text class="s" x="760" y="78" text-anchor="middle">analytics · /docs (Swagger)</text>
+          <line class="edge" x1="250" y1="90" x2="250" y2="118" marker-end="url(#a2)"/>
+          <line class="edge" x1="500" y1="90" x2="500" y2="118" marker-end="url(#a2)"/>
+          <line class="edge" x1="760" y1="90" x2="760" y2="118" marker-end="url(#a2)"/>
+
+          <!-- api -->
+          <rect class="bandr b-api" x="20" y="120" width="880" height="112" rx="12"/>
+          <text class="lane" x="34" y="137">API · FASTAPI · api/routes.py, main.py</text>
+          <rect class="n" x="40" y="144" width="270" height="36" rx="7"/>
+          <text class="tm" x="52" y="159">POST /api/links</text>
+          <text class="s" x="52" y="173">create · alias · 201/409/422/429</text>
+          <rect class="n" x="325" y="144" width="270" height="36" rx="7"/>
+          <text class="tm" x="337" y="159">GET /{code}</text>
+          <text class="s" x="337" y="173">302 redirect · 404 unknown</text>
+          <rect class="n" x="610" y="144" width="270" height="36" rx="7"/>
+          <text class="tm" x="622" y="159">GET /health</text>
+          <text class="s" x="622" y="173">200 ok</text>
+          <rect class="n" x="40" y="186" width="270" height="36" rx="7"/>
+          <text class="tm" x="52" y="201">GET /api/links/{code}/stats</text>
+          <text class="s" x="52" y="215">url · created · click count</text>
+          <rect class="n" x="325" y="186" width="270" height="36" rx="7"/>
+          <text class="tm" x="337" y="201">GET /api/analytics/links/{code}</text>
+          <text class="s" x="337" y="215">per day · ?days=1..90</text>
+          <rect class="n" x="610" y="186" width="270" height="36" rx="7"/>
+          <text class="tm" x="622" y="201">GET /api/analytics/summary</text>
+          <text class="s" x="622" y="215">top 10 + totals · ?days=1..90</text>
+          <line class="edge" x1="460" y1="232" x2="460" y2="250" marker-end="url(#a2)"/>
+
+          <!-- services -->
+          <rect class="bandr b-svc" x="20" y="252" width="880" height="112" rx="12"/>
+          <text class="lane" x="34" y="269">SERVICES · BUSINESS RULES, NO SQL</text>
+          <rect class="n" x="40" y="278" width="160" height="72" rx="9"/>
+          <text class="tm" x="120" y="300" text-anchor="middle">link_service.py</text>
+          <text class="s" x="120" y="318" text-anchor="middle">create · alias rules</text>
+          <text class="s" x="120" y="333" text-anchor="middle">URL validation</text>
+          <rect class="n" x="210" y="278" width="160" height="72" rx="9"/>
+          <text class="tm" x="290" y="300" text-anchor="middle">rate_limiter.py</text>
+          <text class="s" x="290" y="318" text-anchor="middle">10 creates / 60 s</text>
+          <text class="s" x="290" y="333" text-anchor="middle">per IP · in-memory</text>
+          <rect class="n" x="380" y="278" width="160" height="72" rx="9"/>
+          <text class="tm" x="460" y="300" text-anchor="middle">tracking_service.py</text>
+          <text class="s" x="460" y="318" text-anchor="middle">visitor + click + stat</text>
+          <text class="s" x="460" y="333" text-anchor="middle">ONE transaction</text>
+          <rect class="n" x="550" y="278" width="160" height="72" rx="9"/>
+          <text class="tm" x="630" y="300" text-anchor="middle">analytics_service.py</text>
+          <text class="s" x="630" y="318" text-anchor="middle">per day + summary</text>
+          <text class="s" x="630" y="333" text-anchor="middle">last N days (UTC)</text>
+          <rect class="n" x="720" y="278" width="160" height="72" rx="9"/>
+          <text class="tm" x="800" y="300" text-anchor="middle">privacy.py</text>
+          <text class="s" x="800" y="318" text-anchor="middle">salted SHA-256</text>
+          <text class="s" x="800" y="333" text-anchor="middle">IP never stored raw</text>
+          <line class="edge" x1="460" y1="364" x2="460" y2="382" marker-end="url(#a2)"/>
+
+          <!-- repos -->
+          <rect class="bandr b-svc" x="20" y="384" width="880" height="94" rx="12" style="opacity:0.85"/>
+          <text class="lane" x="34" y="401">REPOSITORIES · SQL ONLY · repo/</text>
+          <rect class="n" x="40" y="410" width="160" height="54" rx="9"/>
+          <text class="tm" x="120" y="432" text-anchor="middle">link_repo.py</text>
+          <text class="s" x="120" y="450" text-anchor="middle">links and clicks</text>
+          <rect class="n" x="210" y="410" width="160" height="54" rx="9"/>
+          <text class="tm" x="290" y="432" text-anchor="middle">visitor_repo.py</text>
+          <text class="s" x="290" y="450" text-anchor="middle">link_visitors</text>
+          <rect class="n" x="380" y="410" width="160" height="54" rx="9"/>
+          <text class="tm" x="460" y="432" text-anchor="middle">client_repo.py</text>
+          <text class="s" x="460" y="450" text-anchor="middle">api_clients</text>
+          <rect class="n" x="550" y="410" width="160" height="54" rx="9"/>
+          <text class="tm" x="630" y="432" text-anchor="middle">stats_repo.py</text>
+          <text class="s" x="630" y="450" text-anchor="middle">daily_link_stats</text>
+          <rect class="n" x="720" y="410" width="160" height="54" rx="9"/>
+          <text class="tm" x="800" y="432" text-anchor="middle">db.py</text>
+          <text class="s" x="800" y="450" text-anchor="middle">schema · startup migration</text>
+          <line class="edge" x1="460" y1="478" x2="460" y2="496" marker-end="url(#a2)"/>
+
+          <!-- data -->
+          <rect class="bandr b-data" x="20" y="498" width="880" height="126" rx="12"/>
+          <text class="lane" x="34" y="515">DATA · SQLITE · data/snip_url.db (git-ignored, re-created by seed)</text>
+          <rect class="n" x="40" y="526" width="160" height="82" rx="9"/>
+          <text class="tm" x="120" y="548" text-anchor="middle">short_links</text>
+          <text class="s" x="120" y="567" text-anchor="middle">code · url · alias flag</text>
+          <text class="s" x="120" y="583" text-anchor="middle">creator · last clicked</text>
+          <rect class="n" x="210" y="526" width="160" height="82" rx="9"/>
+          <text class="tm" x="290" y="548" text-anchor="middle">click_events</text>
+          <text class="s" x="290" y="567" text-anchor="middle">time · visitor</text>
+          <text class="s" x="290" y="583" text-anchor="middle">referrer · user agent</text>
+          <rect class="n" x="380" y="526" width="160" height="82" rx="9"/>
+          <text class="tm" x="460" y="548" text-anchor="middle">link_visitors</text>
+          <text class="s" x="460" y="567" text-anchor="middle">salted IP hash</text>
+          <text class="s" x="460" y="583" text-anchor="middle">first/last seen · visits</text>
+          <rect class="n" x="550" y="526" width="160" height="82" rx="9"/>
+          <text class="tm" x="630" y="548" text-anchor="middle">api_clients</text>
+          <text class="s" x="630" y="567" text-anchor="middle">salted IP hash</text>
+          <text class="s" x="630" y="583" text-anchor="middle">links created · limited</text>
+          <rect class="n" x="720" y="526" width="160" height="82" rx="9"/>
+          <text class="tm" x="800" y="548" text-anchor="middle">daily_link_stats</text>
+          <text class="s" x="800" y="567" text-anchor="middle">clicks · unique visitors</text>
+          <text class="s" x="800" y="583" text-anchor="middle">per link per UTC day</text>
+
+          <!-- right column -->
+          <rect class="art" x="920" y="120" width="240" height="112" rx="9"/>
+          <text class="tm" x="1040" y="143" text-anchor="middle">common/</text>
+          <text class="s" x="1040" y="163" text-anchor="middle">config.py: DATABASE_PATH,</text>
+          <text class="s" x="1040" y="178" text-anchor="middle">IP_HASH_SALT</text>
+          <text class="s" x="1040" y="198" text-anchor="middle">errors.py: one JSON format</text>
+          <text class="s" x="1040" y="213" text-anchor="middle">{"error": {code, message}}</text>
+
+          <rect class="art" x="920" y="252" width="240" height="70" rx="9"/>
+          <text class="tm" x="1040" y="277" text-anchor="middle">models/</text>
+          <text class="s" x="1040" y="297" text-anchor="middle">Pydantic: link, analytics</text>
+
+          <rect class="art" x="920" y="384" width="240" height="94" rx="9"/>
+          <text class="tm" x="1040" y="406" text-anchor="middle">db_scripts/</text>
+          <text class="s" x="1040" y="426" text-anchor="middle">seed_data.py: 30 links,</text>
+          <text class="s" x="1040" y="441" text-anchor="middle">300 clicks, 40 visitors</text>
+          <text class="s" x="1040" y="456" text-anchor="middle">re-runnable · schema.sql</text>
+          <polyline class="edge" points="1040,478 1040,560 902,560" marker-end="url(#a2)"/>
+          <text class="el" x="1048" y="522">seeds</text>
+
+          <rect class="art" x="920" y="580" width="240" height="44" rx="9"/>
+          <text class="tm" x="1040" y="598" text-anchor="middle">tests/ · 81 tests</text>
+          <text class="s" x="1040" y="614" text-anchor="middle">98.5% coverage · temp SQLite</text>
+        </svg>
+        <figcaption>
+          <strong>Redirect flow:</strong> <span class="mono">GET /{code}</span> &rarr; look up the link &rarr; <span class="mono">tracking_service</span> saves the visitor (hashed IP), the click event, <span class="mono">last_clicked_at</span> and the daily stat in <strong>one transaction</strong> (all or nothing) &rarr; <strong>302</strong> to the original URL. 302, not 301, so browsers do not cache the redirect and every click is counted (BUG-01, fixed in S2). <strong>Create flow:</strong> rate limit (10 per 60 s per IP) &rarr; validate URL and alias &rarr; save &rarr; 201. All errors use one JSON shape.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== DIAGRAM 3 ===================== -->
+  <section class="card" id="d3">
+    <div class="card-head">
+      <h2>3 &middot; Target production design (NOT built)</h2>
+      <p>How the prototype would scale: separate read and write paths, events for analytics, failures kept for retry. For discussion only</p>
+    </div>
+    <div class="card-body diagram-wrap">
+      <div class="legend">
+        <span class="legend-item"><span class="sw" style="background:var(--l-client-bg);border-color:var(--l-client-bd)"></span>Clients</span>
+        <span class="legend-item"><span class="sw" style="background:var(--l-edge-bg);border-color:var(--l-edge-bd)"></span>Edge</span>
+        <span class="legend-item"><span class="sw" style="background:var(--l-svc-bg);border-color:var(--l-svc-bd)"></span>Services</span>
+        <span class="legend-item"><span class="sw" style="background:var(--l-data-bg);border-color:var(--l-data-bd)"></span>Data</span>
+        <span class="legend-item"><span class="sw" style="background:var(--l-msg-bg);border-color:var(--l-msg-bd)"></span>Messaging</span>
+        <span class="legend-item"><span class="sw" style="background:var(--l-obs-bg);border-color:var(--l-obs-bd)"></span>Observability</span>
+      </div>
+      <figure>
+        <svg viewBox="0 0 1180 580" role="img" aria-label="Target design, not built. Visitors reach a CDN and load balancer, then a redirect service that reads Redis then Postgres and publishes click events to Kafka. API callers and analysts go through an API gateway to a link service and an analytics service. The analytics service consumes Kafka and writes an analytics store; failed messages go to a dead-letter topic and a failed_events table. Observability spans all components.">
+          <defs>
+            <marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7d8499"/></marker>
+            <marker id="a3p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker>
+          </defs>
+
+          <rect class="outline" x="6" y="6" width="1168" height="568" rx="14"/>
+          <text class="banner" x="590" y="28" text-anchor="middle">TARGET DESIGN · NOT BUILT · FOR DISCUSSION</text>
+
+          <!-- clients -->
+          <rect class="bandr b-client" x="20" y="40" width="880" height="80" rx="12"/>
+          <text class="lane" x="34" y="55">CLIENTS</text>
+          <rect class="n" x="40" y="62" width="260" height="46" rx="9"/>
+          <text class="t" x="170" y="81" text-anchor="middle">Visitor (browser)</text>
+          <text class="s" x="170" y="97" text-anchor="middle">opens short links (high volume)</text>
+          <rect class="n" x="320" y="62" width="260" height="46" rx="9"/>
+          <text class="t" x="450" y="81" text-anchor="middle">API caller</text>
+          <text class="s" x="450" y="97" text-anchor="middle">creates links</text>
+          <rect class="n" x="600" y="62" width="280" height="46" rx="9"/>
+          <text class="t" x="740" y="81" text-anchor="middle">Analyst / reviewer</text>
+          <text class="s" x="740" y="97" text-anchor="middle">dashboards · reports</text>
+
+          <!-- edge -->
+          <rect class="bandr b-edge" x="20" y="138" width="880" height="80" rx="12"/>
+          <text class="lane" x="34" y="153">EDGE</text>
+          <rect class="n" x="40" y="158" width="260" height="48" rx="9"/>
+          <text class="t" x="170" y="178" text-anchor="middle">CDN + load balancer</text>
+          <text class="s" x="170" y="195" text-anchor="middle">TLS · WAF · spreads traffic</text>
+          <rect class="n" x="320" y="158" width="560" height="48" rx="9"/>
+          <text class="t" x="600" y="178" text-anchor="middle">API gateway</text>
+          <text class="s" x="600" y="195" text-anchor="middle">auth (API key / OAuth) · quotas · rate limits (Redis counters)</text>
+          <line class="edge" x1="880" y1="182" x2="918" y2="182" marker-end="url(#a3)" style="stroke-dasharray:4 3"/>
+
+          <!-- services -->
+          <rect class="bandr b-svc" x="20" y="236" width="880" height="94" rx="12"/>
+          <text class="lane" x="34" y="251">SERVICES</text>
+          <text class="lane" x="886" y="251" text-anchor="end">STATELESS · SCALE OUT</text>
+          <rect class="n" x="40" y="258" width="260" height="56" rx="9"/>
+          <text class="t" x="170" y="279" text-anchor="middle">Redirect service</text>
+          <text class="s" x="170" y="297" text-anchor="middle">read path · 302 · cache first</text>
+          <rect class="n" x="320" y="258" width="260" height="56" rx="9"/>
+          <text class="t" x="450" y="279" text-anchor="middle">Link service</text>
+          <text class="s" x="450" y="297" text-anchor="middle">create · alias · validation</text>
+          <rect class="n" x="600" y="258" width="280" height="56" rx="9"/>
+          <text class="t" x="740" y="279" text-anchor="middle">Analytics service</text>
+          <text class="s" x="740" y="297" text-anchor="middle">click consumer + analytics API</text>
+
+          <!-- data -->
+          <rect class="bandr b-data" x="20" y="348" width="880" height="92" rx="12"/>
+          <text class="lane" x="34" y="363">DATA</text>
+          <rect class="n" x="40" y="370" width="190" height="56" rx="9"/>
+          <text class="t" x="135" y="391" text-anchor="middle">Redis</text>
+          <text class="s" x="135" y="409" text-anchor="middle">hot-link cache · limits</text>
+          <rect class="n" x="245" y="370" width="190" height="56" rx="9"/>
+          <text class="t" x="340" y="391" text-anchor="middle">Postgres</text>
+          <text class="s" x="340" y="409" text-anchor="middle">links · clients · replicas</text>
+          <rect class="n" x="450" y="370" width="180" height="56" rx="9"/>
+          <text class="t" x="540" y="391" text-anchor="middle">Analytics store</text>
+          <text class="s" x="540" y="409" text-anchor="middle">daily stats (OLAP)</text>
+          <rect class="n" x="690" y="370" width="190" height="56" rx="9"/>
+          <text class="t" x="785" y="391" text-anchor="middle">failed_events</text>
+          <text class="s" x="785" y="409" text-anchor="middle">retry + analysis</text>
+
+          <!-- messaging -->
+          <rect class="bandr b-msg" x="20" y="458" width="880" height="92" rx="12"/>
+          <text class="lane" x="34" y="473">MESSAGING</text>
+          <rect class="n" x="40" y="480" width="580" height="56" rx="9"/>
+          <text class="t" x="330" y="501" text-anchor="middle">Kafka topic: link-clicks</text>
+          <text class="s" x="330" y="519" text-anchor="middle">redirect publishes (async) · analytics consumes · partitioned by short code</text>
+          <rect class="n" x="680" y="480" width="200" height="56" rx="9"/>
+          <text class="t" x="780" y="501" text-anchor="middle">link-clicks-dlq</text>
+          <text class="s" x="780" y="519" text-anchor="middle">dead-letter topic</text>
+
+          <!-- flows -->
+          <line class="edge" x1="170" y1="108" x2="170" y2="156" marker-end="url(#a3)"/>
+          <line class="edge" x1="450" y1="108" x2="450" y2="156" marker-end="url(#a3)"/>
+          <line class="edge" x1="740" y1="108" x2="740" y2="156" marker-end="url(#a3)"/>
+          <line class="edge" x1="170" y1="206" x2="170" y2="256" marker-end="url(#a3)"/>
+          <line class="edge" x1="450" y1="206" x2="450" y2="256" marker-end="url(#a3)"/>
+          <line class="edge" x1="740" y1="206" x2="740" y2="256" marker-end="url(#a3)"/>
+          <line class="edge" x1="140" y1="314" x2="140" y2="368" marker-end="url(#a3)"/>
+          <text class="el" x="146" y="338">1 cache</text>
+          <polyline class="edge" points="270,314 270,340 300,340 300,368" marker-end="url(#a3)"/>
+          <text class="el" x="306" y="338">2 on miss</text>
+          <line class="edge" x1="380" y1="314" x2="380" y2="368" marker-end="url(#a3)"/>
+          <text class="el" x="386" y="338">write</text>
+          <line class="edge" x1="615" y1="314" x2="615" y2="368" marker-end="url(#a3)"/>
+          <text class="el" x="609" y="338" text-anchor="end">aggregates</text>
+          <polyline class="edge async" points="40,286 28,286 28,508 38,508" marker-end="url(#a3p)"/>
+          <text class="el p" x="16" y="400" text-anchor="middle" transform="rotate(-90 16 400)">publish click (async)</text>
+          <polyline class="edge async" points="620,508 660,508 660,316" marker-end="url(#a3p)"/>
+          <text class="el p" x="672" y="440" text-anchor="middle" transform="rotate(-90 672 440)">consume</text>
+          <polyline class="edge" points="880,300 902,300 902,508 882,508" marker-end="url(#a3)"/>
+          <text class="el" x="912" y="404" text-anchor="middle" transform="rotate(90 912 404)">poison → DLQ</text>
+          <line class="edge" x1="785" y1="478" x2="785" y2="428" marker-end="url(#a3)"/>
+          <text class="el" x="791" y="458">kept for retry</text>
+
+          <!-- observability -->
+          <rect class="bandr b-obs" x="920" y="40" width="240" height="510" rx="12"/>
+          <text class="lane" x="934" y="57">OBSERVABILITY</text>
+          <text class="s" x="934" y="73">telemetry from every component</text>
+          <rect class="n" x="940" y="88" width="200" height="56" rx="9"/>
+          <text class="t" x="1040" y="109" text-anchor="middle">Metrics</text>
+          <text class="s" x="1040" y="127" text-anchor="middle">latency p50/p99 · errors</text>
+          <rect class="n" x="940" y="158" width="200" height="56" rx="9"/>
+          <text class="t" x="1040" y="179" text-anchor="middle">Structured logs</text>
+          <text class="s" x="1040" y="197" text-anchor="middle">request id · no raw IP</text>
+          <rect class="n" x="940" y="228" width="200" height="56" rx="9"/>
+          <text class="t" x="1040" y="249" text-anchor="middle">Traces</text>
+          <text class="s" x="1040" y="267" text-anchor="middle">end-to-end per request</text>
+          <rect class="n" x="940" y="298" width="200" height="56" rx="9"/>
+          <text class="t" x="1040" y="319" text-anchor="middle">Alerts + on-call</text>
+          <text class="s" x="1040" y="337" text-anchor="middle">SLO breaches · DLQ growth</text>
+          <rect class="n" x="940" y="368" width="200" height="56" rx="9"/>
+          <text class="t" x="1040" y="389" text-anchor="middle">Dashboards</text>
+          <text class="s" x="1040" y="407" text-anchor="middle">traffic · top links</text>
+        </svg>
+        <figcaption>
+          <strong>Read path (redirects):</strong> CDN/load balancer &rarr; redirect service &rarr; Redis (1) then Postgres on a miss (2) &rarr; 302; the click is <em>published</em> to Kafka instead of written to the database inside the request, so redirect latency stays low during a viral spike. <strong>Write path:</strong> API gateway (auth, quotas, rate limits) &rarr; link service &rarr; Postgres. <strong>Analytics:</strong> the analytics service consumes <span class="mono">link-clicks</span>, writes aggregates, and serves the analytics API. Messages that keep failing go to <span class="mono">link-clicks-dlq</span> and <span class="mono">failed_events</span> for retry and analysis. Targets (load, latency) depend on the S3 open questions owned by the business.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== TABLE: built vs target ===================== -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Built vs target, by concern</h2>
+      <p>What the prototype does today, and what the target design changes</p>
+    </div>
+    <div class="card-body table-wrap">
+      <table>
+        <thead><tr><th style="width:17%">Concern</th><th style="width:40%"><span class="pill built">Built</span> prototype</th><th><span class="pill target">Target</span> design (not built)</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Latency</td><td>Redirect: indexed lookup + one transaction; no load test</td><td>Redis cache for hot links; click recording moved off the request path (Kafka)</td></tr>
+          <tr><td class="k">Scalability</td><td>Single process, SQLite</td><td>Stateless services behind a load balancer; Postgres with replicas</td></tr>
+          <tr><td class="k">SQL vs NoSQL</td><td>SQL: transactions, zero setup</td><td>Key-value cache for redirects; SQL for links; OLAP store for analytics</td></tr>
+          <tr><td class="k">Async processing</td><td>Synchronous, in one transaction</td><td>Kafka topic <span class="mono">link-clicks</span>, analytics consumer</td></tr>
+          <tr><td class="k">Failed transactions</td><td>Rolled back (all or nothing); not stored</td><td>Dead-letter topic + <span class="mono">failed_events</span> table for retry and analysis</td></tr>
+          <tr><td class="k">Rate limiting</td><td>In-memory, per direct IP, create only</td><td>At the API gateway with shared Redis counters; trusted proxy header</td></tr>
+          <tr><td class="k">Privacy</td><td>IPs stored only as salted SHA-256 hashes</td><td>Same + secret-managed salt + retention policy</td></tr>
+          <tr><td class="k">Security</td><td>URL validation; no link editing (phishing risk); agents cannot read secrets</td><td>Auth on create and analytics; abuse and phishing checks</td></tr>
+          <tr><td class="k">Monitoring</td><td>Workflow: audit log + metrics.py. App: access log</td><td>Metrics, logs, traces, alerts, dashboards</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== TABLE: reference comparison ===================== -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Comparison with a public reference design</h2>
+      <p>&ldquo;System Design | Design a URL Shortener (Tiny URL)&rdquo;, LeetCode Discuss, by Aryan Sharma</p>
+    </div>
+    <div class="card-body table-wrap">
+      <table>
+        <thead><tr><th style="width:30%">Reference article</th><th style="width:25%">snip-url</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Load balancer, API gateway, stateless web servers</td><td>Adopted (target)</td><td>Standard horizontal scaling</td></tr>
+          <tr><td>Redis cache-aside for hot links</td><td>Adopted (target)</td><td>Low-latency redirects</td></tr>
+          <tr><td>NFRs: low latency, high availability, fault tolerance, scalability</td><td>Adopted as NFR list</td><td>Same goals</td></tr>
+          <tr><td>301 permanent redirect</td><td>Differ: 302</td><td>301 is cached by browsers, so repeat clicks are lost (BUG-01)</td></tr>
+          <tr><td>MongoDB (NoSQL)</td><td>Differ: SQL (prototype)</td><td>Transactions and zero setup; key-value cache in the target</td></tr>
+          <tr><td>PUT to change a link's destination</td><td>Differ: not offered</td><td>A changeable destination is a phishing risk</td></tr>
+          <tr><td>No rate limiting, no analytics design</td><td>Added</td><td>Schwab asks for analytics and reliability features</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Source: <span class="mono">https://leetcode.com/discuss/post/6149386/system-design-design-a-url-shortener-tin-80zk/</span>. Built components and names match the repo as of 2026-10-08. The target design is a proposal for discussion; no part of it is implemented.
+  </footer>
+</div>
+</body>
+</html>

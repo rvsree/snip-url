@@ -1,6 +1,6 @@
 # 04 - Scenario S1: core URL shortener (greenfield, well-defined)
 
-**Date:** [INSERT run date]
+**Date:** 2026-10-07 (commit `08c454b`)
 **Purpose:** Build the URL shortener from zero through the full /sdlc workflow with 3 human approvals.
 **Input:** `specs/001-core-api/request.md`
 **Where:** Claude Code in the VS Code terminal (`claude`), new session.
@@ -21,10 +21,12 @@
 
 ## My replies
 
-- Approval 1: [INSERT]
-- Approval 2: [INSERT]
-- Approval 3: [INSERT]
+- Approval 1: "yes"
+- Approval 2: "yes"
+- Approval 3: "yes"
+
+(Exact replies from `specs/001-core-api/summary.md`.)
 
 ## Result
 
-[INSERT: tests passed, coverage %, retries, commit ID]
+17 tests passed, coverage 98.25%, 0 fix rounds, 0 rollbacks. Merge commit `08c454b`; summary and audit log `1023436`.

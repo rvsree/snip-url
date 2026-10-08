@@ -60,4 +60,4 @@ Defaults accepted: no-tests (exit 5) counts as pass; `.env.example` writes block
 - 4 agents, SKILL.md, 3 hooks, settings.json and .gitignore written. policy_guard passed 16 sample cases.
 - Known limitation: the Bash guard also blocks commands that only mention `os.environ` (contains ".env"). Safe side; listed in README Limitations.
 - `/sdlc` shows in the terminal `claude` slash list (project skill) after trusting the folder; the VS Code chat panel does not list it.
-- Commit [INSERT commit ID] "Step 2: subagents, /sdlc skill, hooks (gate retry and rollback tested)".
+- Commit `f67c9a0` "Step 2: subagents, /sdlc skill, hooks (gate retry and rollback tested)".

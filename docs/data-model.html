@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>snip-url Data Model</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+  :root {
+    --bg: #f0f1f5; --surface: #ffffff; --surface-alt: #f5f6fa; --border: #dbdee7;
+    --text: #171a24; --text-muted: #555c70; --text-faint: #888fa3;
+    --band: #232a42; --node-bg: #ffffff; --edge: #7d8499;
+    --shadow: 0 2px 4px rgba(15,20,30,0.06), 0 10px 22px rgba(15,20,30,0.07);
+    --hdr-link: #3457d5; --hdr-click: #7c3aed; --hdr-person: #146b3f; --hdr-stat: #9a5a0c;
+    --pk: #9a5a0c; --pk-bg: #fbf1dd; --fk: #3457d5; --fk-bg: #e8eeff; --uq: #146b3f; --uq-bg: #e3f6ea;
+    --ent-bg: #f5f6fa;
+    --built: #146b3f; --built-bg: #e3f6ea; --built-border: #b7e4c8;
+    --note: #9a5a0c; --note-bg: #fbf1dd; --note-border: #edd6a2;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d0f16; --surface: #14161f; --surface-alt: #161923; --border: #292d3d;
+      --text: #e7e9f0; --text-muted: #a5abbf; --text-faint: #6b7288;
+      --band: #1a2038; --node-bg: #181b28; --edge: #8a91a8;
+      --shadow: 0 2px 4px rgba(0,0,0,0.35), 0 12px 26px rgba(0,0,0,0.4);
+      --hdr-link: #3b5bd0; --hdr-click: #7a48d6; --hdr-person: #227a4c; --hdr-stat: #9a6a1c;
+      --pk: #e0ac48; --pk-bg: #2c2311; --fk: #7c96ff; --fk-bg: #182246; --uq: #4fc989; --uq-bg: #132a1e;
+      --ent-bg: #1b1f2c;
+      --built: #4fc989; --built-bg: #132a1e; --built-border: #204a32;
+      --note: #e0ac48; --note-bg: #2c2311; --note-border: #4a3a17;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d0f16; --surface: #14161f; --surface-alt: #161923; --border: #292d3d;
+    --text: #e7e9f0; --text-muted: #a5abbf; --text-faint: #6b7288;
+    --band: #1a2038; --node-bg: #181b28; --edge: #8a91a8;
+    --shadow: 0 2px 4px rgba(0,0,0,0.35), 0 12px 26px rgba(0,0,0,0.4);
+    --hdr-link: #3b5bd0; --hdr-click: #7a48d6; --hdr-person: #227a4c; --hdr-stat: #9a6a1c;
+    --pk: #e0ac48; --pk-bg: #2c2311; --fk: #7c96ff; --fk-bg: #182246; --uq: #4fc989; --uq-bg: #132a1e;
+    --ent-bg: #1b1f2c;
+    --built: #4fc989; --built-bg: #132a1e; --built-border: #204a32;
+    --note: #e0ac48; --note-bg: #2c2311; --note-border: #4a3a17;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif; padding-inline: 16px; padding-block: 28px 56px; }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace; }
+  .wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+  header { display: flex; flex-direction: column; gap: 10px; }
+  .eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-faint); font-weight: 600; }
+  h1 { margin: 0; font-family: 'Archivo', sans-serif; font-weight: 900; font-size: clamp(24px, 3.8vw, 32px); }
+  .subtitle { margin: 0; color: var(--text-muted); font-size: 13.5px; max-width: 90ch; line-height: 1.6; }
+  .source-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint); background: var(--surface); border: 1px solid var(--border); padding: 5px 10px; border-radius: 8px; width: fit-content; }
+  section.card { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); overflow: hidden; }
+  .card-head { background: var(--band); color: #fff; padding: 12px 18px; }
+  .card-head h2 { margin: 0; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 15px; }
+  .card-head p { margin: 4px 0 0; font-size: 11.5px; opacity: 0.78; }
+  .card-body { padding: 18px; }
+  .diagram-wrap { overflow-x: auto; }
+  figure { margin: 0; }
+  svg { display: block; width: 100%; height: auto; min-width: 760px; }
+  figcaption { margin-top: 12px; font-size: 12.5px; color: var(--text-muted); line-height: 1.65; }
+
+  .ent { fill: var(--ent-bg); stroke: var(--border); stroke-width: 1.5; }
+  .tbl { fill: var(--node-bg); stroke: var(--border); stroke-width: 1.5; }
+  .row-alt { fill: var(--surface-alt); }
+  .t { font-family: 'Archivo', 'Segoe UI', sans-serif; font-weight: 700; font-size: 14px; fill: var(--text); }
+  .th { font-family: 'IBM Plex Mono', Consolas, monospace; font-weight: 600; font-size: 12.5px; fill: #fff; }
+  .s { font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 11.5px; fill: var(--text-muted); }
+  .col { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11.5px; fill: var(--text); }
+  .typ { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 10.5px; fill: var(--text-faint); }
+  .key { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 9.5px; font-weight: 700; }
+  .k-pk { fill: var(--pk); } .k-fk { fill: var(--fk); } .k-uq { fill: var(--uq); }
+  .edge { fill: none; stroke: var(--edge); stroke-width: 1.6; }
+  .card-l { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11px; font-weight: 600; fill: var(--text-muted); }
+  .verb { font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-style: italic; font-size: 12px; fill: var(--text-muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th { text-align: left; padding: 8px 12px; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-faint); border-bottom: 1px solid var(--border); }
+  tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.c { font-family: 'IBM Plex Mono', monospace; font-size: 12px; white-space: nowrap; }
+  .table-wrap { overflow-x: auto; }
+  h3 { font-family: 'Archivo', sans-serif; font-size: 14px; margin: 20px 0 8px; }
+  h3:first-child { margin-top: 0; }
+  .pill { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; display: inline-block; font-family: 'IBM Plex Mono', monospace; }
+  .pill.pk { color: var(--pk); background: var(--pk-bg); }
+  .pill.fk { color: var(--fk); background: var(--fk-bg); }
+  .pill.uq { color: var(--uq); background: var(--uq-bg); }
+  .pill.note { color: var(--note); background: var(--note-bg); border: 1px solid var(--note-border); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); background: var(--surface-alt); border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px; }
+  footer { border-top: 1px solid var(--border); padding-top: 16px; font-size: 12px; color: var(--text-faint); line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Charles Schwab take-home &middot; snip-url</div>
+    <h1>snip-url Data Model</h1>
+    <p class="subtitle">Conceptual model (what the business cares about) and physical model (the five SQLite tables as built, from <span class="mono">db_scripts/schema.sql</span>). Built in scenario S4; the tables were renamed from <span class="mono">links</span>/<span class="mono">clicks</span> with a startup migration that keeps existing data.</p>
+    <span class="source-tag">source: db_scripts/schema.sql &middot; 2026-10-08</span>
+  </header>
+
+  <!-- ================= CONCEPTUAL ================= -->
+  <section class="card" id="conceptual">
+    <div class="card-head">
+      <h2>1 &middot; Conceptual model</h2>
+      <p>Five things the business talks about, and how they relate. No columns, no technology.</p>
+    </div>
+    <div class="card-body diagram-wrap">
+      <figure>
+        <svg viewBox="0 0 1180 360" role="img" aria-label="An API client creates zero or more short links. A short link receives zero or more clicks and is summarized by zero or more daily link stats, one per day. A visitor makes zero or more clicks.">
+          <!-- API Client -->
+          <rect class="ent" x="40" y="40" width="250" height="96" rx="10"/>
+          <rect x="40" y="40" width="250" height="8" rx="4" style="fill:var(--hdr-person)"/>
+          <text class="t" x="165" y="76" text-anchor="middle">API Client</text>
+          <text class="s" x="165" y="96" text-anchor="middle">someone who creates links</text>
+          <text class="s" x="165" y="114" text-anchor="middle">known only by a hashed IP</text>
+
+          <!-- Short Link -->
+          <rect class="ent" x="465" y="40" width="250" height="96" rx="10"/>
+          <rect x="465" y="40" width="250" height="8" rx="4" style="fill:var(--hdr-link)"/>
+          <text class="t" x="590" y="76" text-anchor="middle">Short Link</text>
+          <text class="s" x="590" y="96" text-anchor="middle">short code → original URL</text>
+          <text class="s" x="590" y="114" text-anchor="middle">random code or custom alias</text>
+
+          <!-- Daily Link Stat -->
+          <rect class="ent" x="890" y="40" width="250" height="96" rx="10"/>
+          <rect x="890" y="40" width="250" height="8" rx="4" style="fill:var(--hdr-stat)"/>
+          <text class="t" x="1015" y="76" text-anchor="middle">Daily Link Stat</text>
+          <text class="s" x="1015" y="96" text-anchor="middle">clicks and unique visitors</text>
+          <text class="s" x="1015" y="114" text-anchor="middle">for one link on one UTC day</text>
+
+          <!-- Visitor -->
+          <rect class="ent" x="40" y="230" width="250" height="96" rx="10"/>
+          <rect x="40" y="230" width="250" height="8" rx="4" style="fill:var(--hdr-person)"/>
+          <text class="t" x="165" y="266" text-anchor="middle">Visitor</text>
+          <text class="s" x="165" y="286" text-anchor="middle">someone who opens short links</text>
+          <text class="s" x="165" y="304" text-anchor="middle">known only by a hashed IP</text>
+
+          <!-- Click -->
+          <rect class="ent" x="465" y="230" width="250" height="96" rx="10"/>
+          <rect x="465" y="230" width="250" height="8" rx="4" style="fill:var(--hdr-click)"/>
+          <text class="t" x="590" y="266" text-anchor="middle">Click</text>
+          <text class="s" x="590" y="286" text-anchor="middle">one redirect, with its time,</text>
+          <text class="s" x="590" y="304" text-anchor="middle">referrer and browser</text>
+
+          <!-- relationships -->
+          <line class="edge" x1="290" y1="88" x2="465" y2="88"/>
+          <text class="card-l" x="300" y="80">1</text>
+          <text class="card-l" x="455" y="80" text-anchor="end">0..*</text>
+          <text class="verb" x="377" y="108" text-anchor="middle">creates</text>
+
+          <line class="edge" x1="715" y1="88" x2="890" y2="88"/>
+          <text class="card-l" x="725" y="80">1</text>
+          <text class="card-l" x="880" y="80" text-anchor="end">0..*</text>
+          <text class="verb" x="802" y="108" text-anchor="middle">summarized per day by</text>
+
+          <line class="edge" x1="590" y1="136" x2="590" y2="230"/>
+          <text class="card-l" x="598" y="152">1</text>
+          <text class="card-l" x="598" y="222">0..*</text>
+          <text class="verb" x="606" y="188">receives</text>
+
+          <line class="edge" x1="290" y1="278" x2="465" y2="278"/>
+          <text class="card-l" x="300" y="270">1</text>
+          <text class="card-l" x="455" y="270" text-anchor="end">0..*</text>
+          <text class="verb" x="377" y="298" text-anchor="middle">makes</text>
+        </svg>
+        <figcaption>
+          Read as: <em>one API client creates zero or more short links; one short link receives zero or more clicks; one visitor makes zero or more clicks; one short link is summarized by zero or more daily stats (at most one per day).</em> Links created before S4 have no known creator, and clicks recorded before S4 have no known visitor, so both relationships are optional on that side.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= PHYSICAL ================= -->
+  <section class="card" id="physical">
+    <div class="card-head">
+      <h2>2 &middot; Physical model (SQLite, as built)</h2>
+      <p>Five tables in data/snip_url.db, with keys, types and relationships exactly as in db_scripts/schema.sql</p>
+    </div>
+    <div class="card-body diagram-wrap">
+      <div class="legend">
+        <span class="legend-item"><span class="pill pk">PK</span>primary key</span>
+        <span class="legend-item"><span class="pill fk">FK</span>foreign key</span>
+        <span class="legend-item"><span class="pill uq">UQ</span>unique</span>
+        <span class="legend-item"><span class="mono" style="font-size:11px">1 — 0..*</span>&nbsp;one to many</span>
+      </div>
+      <figure>
+        <svg viewBox="0 0 1180 540" role="img" aria-label="Physical model: api_clients.id is referenced by short_links.created_by_client; short_links.code is referenced by click_events.code and daily_link_stats.code; link_visitors.id is referenced by click_events.visitor.">
+
+          <!-- api_clients x30 y40 -->
+          <rect class="tbl" x="30" y="40" width="300" height="172" rx="9"/>
+          <path d="M30,49 a9,9 0 0 1 9,-9 h282 a9,9 0 0 1 9,9 v23 h-300 z" style="fill:var(--hdr-person)"/>
+          <text class="th" x="44" y="61">api_clients</text>
+          <rect class="row-alt" x="31" y="94" width="298" height="22"/>
+          <rect class="row-alt" x="31" y="138" width="298" height="22"/>
+          <rect class="row-alt" x="31" y="182" width="298" height="22"/>
+          <text class="key k-pk" x="42" y="87">PK</text><text class="col" x="70" y="87">id</text><text class="typ" x="318" y="87" text-anchor="end">INTEGER autoinc</text>
+          <text class="key k-uq" x="42" y="109">UQ</text><text class="col" x="70" y="109">ip_hash</text><text class="typ" x="318" y="109" text-anchor="end">TEXT not null</text>
+          <text class="col" x="70" y="131">first_seen</text><text class="typ" x="318" y="131" text-anchor="end">TEXT not null</text>
+          <text class="col" x="70" y="153">last_seen</text><text class="typ" x="318" y="153" text-anchor="end">TEXT not null</text>
+          <text class="col" x="70" y="175">links_created</text><text class="typ" x="318" y="175" text-anchor="end">INTEGER def 0</text>
+          <text class="col" x="70" y="197">times_rate_limited</text><text class="typ" x="318" y="197" text-anchor="end">INTEGER def 0</text>
+
+          <!-- short_links x440 y40 -->
+          <rect class="tbl" x="440" y="40" width="300" height="172" rx="9"/>
+          <path d="M440,49 a9,9 0 0 1 9,-9 h282 a9,9 0 0 1 9,9 v23 h-300 z" style="fill:var(--hdr-link)"/>
+          <text class="th" x="454" y="61">short_links</text>
+          <rect class="row-alt" x="441" y="94" width="298" height="22"/>
+          <rect class="row-alt" x="441" y="138" width="298" height="22"/>
+          <rect class="row-alt" x="441" y="182" width="298" height="22"/>
+          <text class="key k-pk" x="452" y="87">PK</text><text class="col" x="480" y="87">code</text><text class="typ" x="728" y="87" text-anchor="end">TEXT</text>
+          <text class="col" x="480" y="109">original_url</text><text class="typ" x="728" y="109" text-anchor="end">TEXT not null</text>
+          <text class="col" x="480" y="131">created_at</text><text class="typ" x="728" y="131" text-anchor="end">TEXT not null</text>
+          <text class="col" x="480" y="153">is_custom_alias</text><text class="typ" x="728" y="153" text-anchor="end">INTEGER def 0</text>
+          <text class="key k-fk" x="452" y="175">FK</text><text class="col" x="480" y="175">created_by_client</text><text class="typ" x="728" y="175" text-anchor="end">INTEGER null</text>
+          <text class="col" x="480" y="197">last_clicked_at</text><text class="typ" x="728" y="197" text-anchor="end">TEXT null</text>
+
+          <!-- daily_link_stats x850 y40 -->
+          <rect class="tbl" x="850" y="40" width="300" height="128" rx="9"/>
+          <path d="M850,49 a9,9 0 0 1 9,-9 h282 a9,9 0 0 1 9,9 v23 h-300 z" style="fill:var(--hdr-stat)"/>
+          <text class="th" x="864" y="61">daily_link_stats</text>
+          <rect class="row-alt" x="851" y="94" width="298" height="22"/>
+          <rect class="row-alt" x="851" y="138" width="298" height="22"/>
+          <text class="key k-pk" x="862" y="87">PK</text><text class="key k-fk" x="880" y="87">FK</text><text class="col" x="900" y="87">code</text><text class="typ" x="1138" y="87" text-anchor="end">TEXT not null</text>
+          <text class="key k-pk" x="862" y="109">PK</text><text class="col" x="900" y="109">day</text><text class="typ" x="1138" y="109" text-anchor="end">TEXT not null</text>
+          <text class="col" x="900" y="131">click_count</text><text class="typ" x="1138" y="131" text-anchor="end">INTEGER def 0</text>
+          <text class="col" x="900" y="153">unique_visitors</text><text class="typ" x="1138" y="153" text-anchor="end">INTEGER def 0</text>
+
+          <!-- link_visitors x30 y330 -->
+          <rect class="tbl" x="30" y="330" width="300" height="172" rx="9"/>
+          <path d="M30,339 a9,9 0 0 1 9,-9 h282 a9,9 0 0 1 9,9 v23 h-300 z" style="fill:var(--hdr-person)"/>
+          <text class="th" x="44" y="351">link_visitors</text>
+          <rect class="row-alt" x="31" y="384" width="298" height="22"/>
+          <rect class="row-alt" x="31" y="428" width="298" height="22"/>
+          <rect class="row-alt" x="31" y="472" width="298" height="22"/>
+          <text class="key k-pk" x="42" y="377">PK</text><text class="col" x="70" y="377">id</text><text class="typ" x="318" y="377" text-anchor="end">INTEGER autoinc</text>
+          <text class="key k-uq" x="42" y="399">UQ</text><text class="col" x="70" y="399">ip_hash</text><text class="typ" x="318" y="399" text-anchor="end">TEXT not null</text>
+          <text class="col" x="70" y="421">user_agent</text><text class="typ" x="318" y="421" text-anchor="end">TEXT def ''</text>
+          <text class="col" x="70" y="443">first_seen</text><text class="typ" x="318" y="443" text-anchor="end">TEXT not null</text>
+          <text class="col" x="70" y="465">last_seen</text><text class="typ" x="318" y="465" text-anchor="end">TEXT not null</text>
+          <text class="col" x="70" y="487">visit_count</text><text class="typ" x="318" y="487" text-anchor="end">INTEGER def 0</text>
+
+          <!-- click_events x440 y330 -->
+          <rect class="tbl" x="440" y="330" width="300" height="172" rx="9"/>
+          <path d="M440,339 a9,9 0 0 1 9,-9 h282 a9,9 0 0 1 9,9 v23 h-300 z" style="fill:var(--hdr-click)"/>
+          <text class="th" x="454" y="351">click_events</text>
+          <rect class="row-alt" x="441" y="384" width="298" height="22"/>
+          <rect class="row-alt" x="441" y="428" width="298" height="22"/>
+          <rect class="row-alt" x="441" y="472" width="298" height="22"/>
+          <text class="key k-pk" x="452" y="377">PK</text><text class="col" x="480" y="377">id</text><text class="typ" x="728" y="377" text-anchor="end">INTEGER autoinc</text>
+          <text class="key k-fk" x="452" y="399">FK</text><text class="col" x="480" y="399">code</text><text class="typ" x="728" y="399" text-anchor="end">TEXT not null · idx</text>
+          <text class="col" x="480" y="421">clicked_at</text><text class="typ" x="728" y="421" text-anchor="end">TEXT not null</text>
+          <text class="key k-fk" x="452" y="443">FK</text><text class="col" x="480" y="443">visitor</text><text class="typ" x="728" y="443" text-anchor="end">INTEGER null</text>
+          <text class="col" x="480" y="465">user_agent</text><text class="typ" x="728" y="465" text-anchor="end">TEXT null</text>
+          <text class="col" x="480" y="487">referrer</text><text class="typ" x="728" y="487" text-anchor="end">TEXT null</text>
+
+          <!-- notes box -->
+          <rect class="tbl" x="850" y="330" width="300" height="172" rx="9" style="fill:var(--surface-alt)"/>
+          <text class="t" x="866" y="356" style="font-size:13px">Conventions</text>
+          <text class="s" x="866" y="380">Times: ISO-8601 text, UTC</text>
+          <text class="s" x="866" y="400">Booleans: INTEGER 0 / 1</text>
+          <text class="s" x="866" y="420">ip_hash: salted SHA-256 (hex);</text>
+          <text class="s" x="866" y="437">the raw IP is never stored</text>
+          <text class="s" x="866" y="457">One redirect = one transaction:</text>
+          <text class="s" x="866" y="474">visitor + click + last_clicked_at</text>
+          <text class="s" x="866" y="491">+ daily stat (all or nothing)</text>
+
+          <!-- relationships -->
+          <polyline class="edge" points="330,83 385,83 385,171 438,171"/>
+          <text class="card-l" x="338" y="76">1</text>
+          <text class="card-l" x="434" y="164" text-anchor="end">0..*</text>
+
+          <line class="edge" x1="740" y1="83" x2="850" y2="83"/>
+          <text class="card-l" x="748" y="76">1</text>
+          <text class="card-l" x="844" y="76" text-anchor="end">0..*</text>
+
+          <line class="edge" x1="590" y1="212" x2="590" y2="330"/>
+          <text class="card-l" x="598" y="228">1</text>
+          <text class="card-l" x="598" y="322">0..*</text>
+
+          <polyline class="edge" points="330,373 385,373 385,439 438,439"/>
+          <text class="card-l" x="338" y="366">1</text>
+          <text class="card-l" x="434" y="432" text-anchor="end">0..*</text>
+        </svg>
+        <figcaption>
+          <span class="mono">short_links.code</span> is the natural key (the short code is what users see), so other tables reference it directly. <span class="mono">daily_link_stats</span> has a composite primary key <span class="mono">(code, day)</span>, which guarantees one row per link per day. <span class="mono">created_by_client</span> and <span class="mono">visitor</span> allow NULL for rows created before S4 (no backfill: a guessed value would be worse than an empty one).
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= DATA DICTIONARY ================= -->
+  <section class="card">
+    <div class="card-head">
+      <h2>3 &middot; Data dictionary</h2>
+      <p>Every column, what it means, and where it comes from</p>
+    </div>
+    <div class="card-body table-wrap">
+      <h3>short_links &middot; one row per short link</h3>
+      <table>
+        <thead><tr><th style="width:20%">Column</th><th style="width:22%">Type / rule</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="c">code</td><td><span class="pill pk">PK</span> TEXT</td><td>Random 7-character base62 code, or a custom alias (3&ndash;30 letters, digits, hyphens; case-sensitive; reserved words rejected)</td></tr>
+          <tr><td class="c">original_url</td><td>TEXT, not null</td><td>Destination; only http/https, up to 2048 characters</td></tr>
+          <tr><td class="c">created_at</td><td>TEXT, not null</td><td>Creation time (UTC)</td></tr>
+          <tr><td class="c">is_custom_alias</td><td>INTEGER 0/1, default 0</td><td>1 if the user chose the code; 0 for random codes and for links created before S4 (not backfilled)</td></tr>
+          <tr><td class="c">created_by_client</td><td><span class="pill fk">FK</span> api_clients.id, null allowed</td><td>Who created the link; NULL for links created before S4</td></tr>
+          <tr><td class="c">last_clicked_at</td><td>TEXT, null allowed</td><td>Time of the latest redirect; NULL if never clicked</td></tr>
+        </tbody>
+      </table>
+
+      <h3>click_events &middot; one row per redirect</h3>
+      <table>
+        <thead><tr><th style="width:20%">Column</th><th style="width:22%">Type / rule</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="c">id</td><td><span class="pill pk">PK</span> INTEGER autoincrement</td><td>Surrogate key</td></tr>
+          <tr><td class="c">code</td><td><span class="pill fk">FK</span> short_links.code, not null, indexed</td><td>Which link was opened (index <span class="mono">idx_click_events_code</span>)</td></tr>
+          <tr><td class="c">clicked_at</td><td>TEXT, not null</td><td>Redirect time (UTC)</td></tr>
+          <tr><td class="c">visitor</td><td><span class="pill fk">FK</span> link_visitors.id, null allowed</td><td>Who clicked; NULL for clicks recorded before S4</td></tr>
+          <tr><td class="c">user_agent</td><td>TEXT, null allowed</td><td>Browser identification sent by the visitor</td></tr>
+          <tr><td class="c">referrer</td><td>TEXT, null allowed</td><td>Page the visitor came from, if sent</td></tr>
+        </tbody>
+      </table>
+
+      <h3>link_visitors &middot; one row per visitor (people who click)</h3>
+      <table>
+        <thead><tr><th style="width:20%">Column</th><th style="width:22%">Type / rule</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="c">id</td><td><span class="pill pk">PK</span> INTEGER autoincrement</td><td>Surrogate key</td></tr>
+          <tr><td class="c">ip_hash</td><td><span class="pill uq">UQ</span> TEXT, not null</td><td>Salted SHA-256 of the direct client IP (salt from <span class="mono">IP_HASH_SALT</span>); identifies a visitor without storing the IP</td></tr>
+          <tr><td class="c">user_agent</td><td>TEXT, default ''</td><td>Latest browser identification seen</td></tr>
+          <tr><td class="c">first_seen / last_seen</td><td>TEXT, not null</td><td>First and latest visit (UTC)</td></tr>
+          <tr><td class="c">visit_count</td><td>INTEGER, default 0</td><td>Total redirects by this visitor</td></tr>
+        </tbody>
+      </table>
+
+      <h3>api_clients &middot; one row per API caller (people who create links)</h3>
+      <table>
+        <thead><tr><th style="width:20%">Column</th><th style="width:22%">Type / rule</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="c">id</td><td><span class="pill pk">PK</span> INTEGER autoincrement</td><td>Surrogate key</td></tr>
+          <tr><td class="c">ip_hash</td><td><span class="pill uq">UQ</span> TEXT, not null</td><td>Salted SHA-256 of the direct client IP</td></tr>
+          <tr><td class="c">first_seen / last_seen</td><td>TEXT, not null</td><td>First and latest call (UTC)</td></tr>
+          <tr><td class="c">links_created</td><td>INTEGER, default 0</td><td>Successful creates only (failed creates are not counted)</td></tr>
+          <tr><td class="c">times_rate_limited</td><td>INTEGER, default 0</td><td>How often this caller hit the limit (10 creates per 60 s); useful for spotting abuse</td></tr>
+        </tbody>
+      </table>
+
+      <h3>daily_link_stats &middot; one row per link per UTC day</h3>
+      <table>
+        <thead><tr><th style="width:20%">Column</th><th style="width:22%">Type / rule</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="c">code</td><td><span class="pill pk">PK</span> <span class="pill fk">FK</span> short_links.code</td><td>Which link</td></tr>
+          <tr><td class="c">day</td><td><span class="pill pk">PK</span> TEXT, not null</td><td>UTC calendar day (YYYY-MM-DD)</td></tr>
+          <tr><td class="c">click_count</td><td>INTEGER, default 0</td><td>Redirects that day; updated in the same transaction as the click</td></tr>
+          <tr><td class="c">unique_visitors</td><td>INTEGER, default 0</td><td>Distinct visitors that day; feeds the analytics endpoints</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= KEYS, INDEXES, NOTES ================= -->
+  <section class="card">
+    <div class="card-head">
+      <h2>4 &middot; Keys, indexes and design notes</h2>
+      <p>Why the model looks like this, and what would change at scale</p>
+    </div>
+    <div class="card-body table-wrap">
+      <table>
+        <thead><tr><th style="width:24%">Item</th><th style="width:38%">As built</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Redirect lookup</td><td><span class="mono">short_links</span> primary key on <span class="mono">code</span></td><td>Every redirect is a primary-key lookup: the fastest possible read</td></tr>
+          <tr><td class="k">Clicks per link</td><td>Index <span class="mono">idx_click_events_code</span></td><td>Supports stats per link</td></tr>
+          <tr><td class="k">One stat row per day</td><td>Composite PK <span class="mono">(code, day)</span></td><td>Database itself prevents duplicate daily rows</td></tr>
+          <tr><td class="k">One row per visitor / client</td><td>UNIQUE on <span class="mono">ip_hash</span></td><td>Also gives an index for the lookup on every request</td></tr>
+          <tr><td class="k">Analytics reads</td><td>From <span class="mono">daily_link_stats</span>, not raw clicks</td><td>Pre-aggregated, so analytics cost does not grow with click volume</td></tr>
+          <tr><td class="k">Consistency</td><td>Click, visitor, last_clicked_at and daily stat in one transaction</td><td>Raw clicks and daily totals can never disagree</td></tr>
+          <tr><td class="k">Privacy</td><td>Only salted hashes of IPs</td><td>Unique counts still work (same IP + same salt = same hash)</td></tr>
+          <tr><td class="k">Not indexed (prototype)</td><td><span class="mono">click_events.clicked_at</span>, <span class="mono">click_events.visitor</span>, <span class="mono">short_links.created_by_client</span></td><td><span class="pill note">note</span> Not needed for current queries; add if queries by time, visitor or creator are added</td></tr>
+          <tr><td class="k">Foreign keys in SQLite</td><td>Declared in the schema</td><td><span class="pill note">note</span> SQLite enforces them only when <span class="mono">PRAGMA foreign_keys=ON</span> is set per connection; enabled: repo/db.py runs PRAGMA foreign_keys = ON in get_connection() for every connection</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mapping to the target design (not built)</h3>
+      <table>
+        <thead><tr><th style="width:24%">SQLite (built)</th><th>Postgres / target (not built)</th></tr></thead>
+        <tbody>
+          <tr><td class="c">TEXT timestamps</td><td><span class="mono">TIMESTAMPTZ</span></td></tr>
+          <tr><td class="c">INTEGER 0/1</td><td><span class="mono">BOOLEAN</span></td></tr>
+          <tr><td class="c">INTEGER AUTOINCREMENT</td><td><span class="mono">BIGINT GENERATED ALWAYS AS IDENTITY</span></td></tr>
+          <tr><td class="c">click_events</td><td>Not stored row-by-row in Postgres; published to Kafka <span class="mono">link-clicks</span>, raw events kept 1 year in the analytics store (partitioned by day)</td></tr>
+          <tr><td class="c">daily_link_stats</td><td>Written by the analytics consumer to the analytics store</td></tr>
+          <tr><td class="c">short_links, api_clients</td><td>Postgres (source of truth) + Redis cache for hot <span class="mono">code → original_url</span></td></tr>
+          <tr><td class="c">(none)</td><td><span class="mono">failed_events</span>: messages that failed processing, for retry and analysis</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Physical model taken from <span class="mono">db_scripts/schema.sql</span>; the app creates the same tables at startup (<span class="mono">src/snip_url/repo/db.py</span>). Sample data: <span class="mono">uv run python db_scripts/seed_data.py</span> loads 30 links, 300 clicks, 40 visitors and 5 API clients (re-runnable).
+  </footer>
+</div>
+</body>
+</html>

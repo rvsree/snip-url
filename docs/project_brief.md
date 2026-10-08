@@ -114,15 +114,17 @@ snip-url/
             skills/sdlc/SKILL.md           the /sdlc flow
             hooks/    policy_guard.py audit_log.py verify_gate.py
   specs/    constitution.md                coding standards and rules
-            001-core-api/  002-alias-ratelimit-fix/  003-viral-traffic/
+            001-core-api/  002-alias-ratelimit-fix/  003-viral-traffic/  004-data-model-analytics/
                 (request.md spec.md plan.md tasks.md summary.md; plan.md holds the contract and data model)
   src/snip_url/  __init__.py main.py api/ services/ repo/ models/ common/   (written by agents)
   tests/                                                        (written by agents)
   data/     snip_url.db (local SQLite, git-ignored)
+  db_scripts/  schema.sql (reference) seed_data.py (re-runnable sample data)
   scripts/  metrics.py  seed_bug01.py
   logs/audit.jsonl
-  prompts/  01-setup.md 02-... one file per prompt given to Claude Code
-  docs/     project_brief.md architecture.md design.md decisions.md requirements-map.md scenarios.md
+  prompts/  01-setup.md ... 11-docs-and-handover.md   one file per prompt given to Claude Code
+  docs/     project_brief.md architecture.md design.md decisions.md SCHWAB_SPEC_MAPPER.md
+            scenarios.md metrics.md review-checklist.md
 ```
 
 ## 7. Schwab requirements: where each is met
