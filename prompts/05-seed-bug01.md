@@ -1,6 +1,6 @@
 # 05 - Seed BUG-01 on purpose (before S2)
 
-**Date:** [INSERT]
+**Date:** 2026-10-07
 **Purpose:** Plant a known bug so scenario S2 can show a real bug fix on existing code. Done by the human, outside /sdlc, in a clearly labelled commit.
 **Where:** Claude Code in the VS Code terminal (`claude`), new session.
 
@@ -35,6 +35,16 @@ git add scripts/seed_bug01.py <the 2 changed files the script printed>
 git commit -m "BUG-01 seeded on purpose for scenario S2 (redirect 301 instead of 302)"
 ```
 
+## Follow-up during the session
+
+Claude Code found that 3 tests (not 1) asserted 302. Reply:
+
+```
+Yes, loosen those two assertions too, the same way (accept 301 or 302). Keep the exactly-one-match check for each change. Show me the final list of every file and line the script will change.
+```
+
 ## Result
 
-[INSERT: files changed, commit ID]
+- Script made 4 changes: `src/snip_url/api/routes.py` (302 -> 301), `tests/test_redirect.py` (AC5, AC7 assertions), `tests/test_persistence.py` (AC11 assertion).
+- `uv run pytest -q`: 17 passed (bug hidden by the loosened tests, as intended).
+- Commit [INSERT commit ID] "BUG-01 seeded on purpose for scenario S2 (redirect 301 instead of 302; 3 test assertions loosened)".
