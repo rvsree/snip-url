@@ -98,7 +98,7 @@ SUMMARY summary.md: what was built, results, approvals, retries
 | ID | Type | Request | What it proves |
 |---|---|---|---|
 | S1 | Greenfield, well-defined | Build the URL shortener: create a short link, redirect (302), click stats; SQLite; URL validation | Decomposition, build from zero, tests, gates |
-| S2 | Brownfield (enhancement, bug fix, test and doc improvement) | Add custom alias and rate limiting; fix BUG-01 (redirect returns 301 instead of 302, so clicks are lost); add missing tests; update README | Impact analysis on existing code, safe change, regression test |
+| S2 | Brownfield (enhancement, bug fix, test and doc improvement) | Add custom alias and rate limiting; fix BUG-01 (redirect returns 301 instead of 302, so clicks are lost); refactor DEF-02 (database created in the root on import, found in S1 review); add missing tests; update README | Impact analysis on existing code, safe change, regression test |
 | S3 | Ambiguous | "Make it handle viral traffic." | Agent asks questions, records assumptions, stops at the approved spec |
 
 BUG-01 is seeded on purpose after S1 by `scripts/seed_bug01.py`, in a clearly labelled commit.
@@ -115,13 +115,14 @@ snip-url/
             hooks/    policy_guard.py audit_log.py verify_gate.py
   specs/    constitution.md                coding standards and rules
             001-core-api/  002-alias-ratelimit-fix/  003-viral-traffic/
-                (request.md spec.md plan.md tasks.md summary.md; 001 also data-model.md, contracts/api.md)
+                (request.md spec.md plan.md tasks.md summary.md; plan.md holds the contract and data model)
   src/snip_url/  __init__.py main.py api/ services/ repo/ models/ common/   (written by agents)
   tests/                                                        (written by agents)
   data/     snip_url.db (local SQLite, git-ignored)
   scripts/  metrics.py  seed_bug01.py
   logs/audit.jsonl
-  docs/     PROJECT_BRIEF.md architecture.md design.md decisions.md requirements-map.md scenarios.md
+  prompts/  01-setup.md 02-... one file per prompt given to Claude Code
+  docs/     project_brief.md architecture.md design.md decisions.md requirements-map.md scenarios.md
 ```
 
 ## 7. Schwab requirements: where each is met
@@ -140,7 +141,7 @@ snip-url/
 | Audit and traceability | `audit_log.py` -> logs/audit.jsonl |
 | Metrics: success rate, retry and rollback count, MTTR, latency | `scripts/metrics.py` (from audit log and git) |
 | Re-plan when upstream changes | reject at approval 2 or 3 -> planner runs again |
-| Output: code, API, tests, docs | `src/`, contracts/api.md, `tests/`, README |
+| Output: code, API, tests, docs | `src/`, plan.md contract, `tests/`, README |
 | Final engineering summary | summary.md per feature + README |
 | Deliverables: prototype, architecture, 3 scenarios, setup, testing, limits | app + `docs/` + README |
 
